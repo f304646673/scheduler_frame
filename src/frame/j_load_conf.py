@@ -11,8 +11,8 @@ from scheduler_frame_conf_inst import scheduler_frame_conf_inst
 from loggingex import LOG_INFO
 from loggingex import LOG_DEBUG
 
-class j_load_conf(job_base, singleton):
-
+@singleton
+class j_load_conf(job_base):
     def __init__(self):
         self._frame_conf_inst = scheduler_frame_conf_inst()
         self._job_center = job_center()

@@ -8,7 +8,8 @@ from job_conf_parser import job_conf_parser
 from singleton import singleton
 from loggingex import LOG_WARNING
 
-class job_center(singleton):
+@singleton
+class job_center():
     def __init__(self):
         self._sched = None
         self._job_conf_path = ""
@@ -75,7 +76,8 @@ class job_center(singleton):
         _packet_name = _cls_name  
         _module_home = __import__(_packet_name,globals(),locals(),[_cls_name])
         obj =  getattr(_module_home,_cls_name)  
-        return obj()
+        class_obj = obj()
+        return class_obj
 
 if __name__ == "__main__":
     a = job_center("job_sample.conf")

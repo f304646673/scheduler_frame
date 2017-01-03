@@ -1,8 +1,8 @@
 import ConfigParser
 from singleton import singleton
 
-class scheduler_frame_conf_inst(singleton):
-    
+@singleton
+class scheduler_frame_conf_inst():
     def load(self, conf_path):
         print("load frame conf %s" % conf_path)
         self._cp = ConfigParser.SafeConfigParser()

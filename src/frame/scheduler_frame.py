@@ -14,13 +14,13 @@ from mysql_manager import mysql_manager
 from mysql_conf_parser import mysql_conf_parser
 from scheduler_frame_conf_inst import scheduler_frame_conf_inst 
 
-class scheduler_frame(singleton):
-
+@singleton
+class scheduler_frame():
     def __init__(self, conf_path):
         os.chdir("../../")
         sys.path.append("src/")
-        sys.path.append("src/*")
-        sys.path.append("src/*/*")
+        self._append_src_path("src/")
+
         self._frame_conf_inst = scheduler_frame_conf_inst()
         self._frame_conf_inst.load(conf_path)
         
@@ -28,6 +28,15 @@ class scheduler_frame(singleton):
 
         self._job_center = job_center()
         self._job_center.start()
+
+    def _append_src_path(self, path):
+        filelist =  os.listdir(path)  
+        for filename in filelist:  
+            filepath = os.path.join(path, filename)  
+            if os.path.isdir(filepath):
+                sys.path.append(filepath)
+                self._append_src_path(filepath)  
+
 
     def _init_log(self):
         section_name = "frame_log"

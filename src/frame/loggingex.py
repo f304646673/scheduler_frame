@@ -5,7 +5,8 @@ import logging
 import logging.config
 from singleton import singleton
 
-class loggingex(singleton):
+@singleton
+class loggingex():
     def __init__(self, conf_path):
         error = 0
         while True:

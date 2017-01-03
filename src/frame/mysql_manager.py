@@ -14,7 +14,8 @@ class mysql_conn_info:
         self.index = -1
         self.conns_dict = {}
 
-class mysql_manager(singleton):
+@singleton
+class mysql_manager():
     def __init__(self):
         self._conns = {}
 
