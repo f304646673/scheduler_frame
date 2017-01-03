@@ -7,9 +7,11 @@ from loggingex import LOG_INIT
 from loggingex import LOG_WARNING
 from loggingex import LOG_DEBUG
 
-from job_parser import job_parser
+from job_conf_parser import job_conf_parser
 from job_center import job_center
 from singleton import singleton
+from mysql_manager import mysql_manager
+from mysql_conf_parser import mysql_conf_parser
 from scheduler_frame_conf_inst import scheduler_frame_conf_inst 
 
 class scheduler_frame(singleton):
@@ -21,6 +23,8 @@ class scheduler_frame(singleton):
         sys.path.append("src/*/*")
         self._frame_conf_inst = scheduler_frame_conf_inst()
         self._frame_conf_inst.load(conf_path)
+        
+        self._mysql_manager = mysql_manager()
 
         self._job_center = job_center()
         self._job_center.start()
@@ -43,19 +47,22 @@ class scheduler_frame(singleton):
             return
         conf_path = self._frame_conf_inst.get(section_name, option_name)
         LOG_DEBUG("Load %s %s %s" % (section_name, option_name, conf_path))
-        job_parser_obj = job_parser()
-        jobs_info = job_parser_obj.parse(conf_path)
+        job_conf_parser_obj = job_conf_parser()
+        jobs_info = job_conf_parser_obj.parse(conf_path)
         self._job_center.add_jobs(jobs_info, True)
     
     def _init_db(self):
-        section_name = "mysql_conn"
+        section_name = "mysql_manager"
         option_name = "conf_path"
         if False == self._frame_conf_inst.has_option(section_name, option_name):
             LOG_WARNING("no %s %s" % (section_name, option_name))
             return
         conf_path = self._frame_conf_inst.get(section_name, option_name)
         LOG_DEBUG("Load %s %s %s" % (section_name, option_name, conf_path))
-        
+        mysql_conf_parser_obj = mysql_conf_parser()
+        conns_info = mysql_conf_parser_obj.parse(conf_path)
+        self._mysql_manager.add_conns(conns_info)
+        #print conns_info
 
     def start(self):
         self._init_log()

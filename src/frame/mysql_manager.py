@@ -49,11 +49,11 @@ class mysql_manager(singleton):
     
     def _print_conns(self):
         for (conn_name, conn_info) in self._conns.items():
-            print "conn name: " + conn_name
-            print "conn info index: " + str(conn_info.index)
-            print conn_info
+            out_str = "conn name: " + conn_name + "\n"
+            out_str = out_str +  "conn info index: " + str(conn_info.index) + "\n"
             for (key, value) in conn_info.conns_dict.items():
-                print key, value
+                out_str = out_str + key + str(value) + "\n"
+            LOG_INFO(out_str)
 
 
 if __name__ == "__main__":

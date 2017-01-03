@@ -40,6 +40,7 @@ class job_center(singleton):
                 cmd += " , "
                 cmd += params
             cmd += ")"
+            #print cmd
             eval(cmd)
 
     def remove_jobs(self, jobs_info):

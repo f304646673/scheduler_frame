@@ -18,11 +18,6 @@ class j_load_conf(job_base, singleton):
         self._job_center = job_center()
         self._pre_jobs_info = {}
 
-    def _hash(self, data):
-        m = md5.new()   
-        m.update(data)   
-        return m.hexdigest()  
-
     def run(self):
         section_name = "strategy_job"
         option_name = "conf_path"
