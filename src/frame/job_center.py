@@ -4,19 +4,17 @@ from datetime import date
 from apscheduler.schedulers.background import BackgroundScheduler
 
 import job_conf
-from job_parser import job_parser
+from job_conf_parser import job_conf_parser
 from singleton import singleton
 from loggingex import LOG_WARNING
 
 class job_center(singleton):
-    _sched = None
-    _job_conf_path = ""
-    _job_id_handle = {}
-    _static_job_id_handle = {}
-
     def __init__(self):
-        pass
-
+        self._sched = None
+        self._job_conf_path = ""
+        self._job_id_handle = {}
+        self._static_job_id_handle = {}
+    
     def start(self):
         self._sched = BackgroundScheduler()
         self._sched.start()

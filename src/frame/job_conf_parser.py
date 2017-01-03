@@ -1,7 +1,7 @@
 import ConfigParser
 import job_conf
 
-class job_parser:
+class job_conf_parser:
     
     def parse(self, job_conf_path):
 
@@ -27,6 +27,6 @@ class job_parser:
         return jobs_info
 
 if __name__ == "__main__":
-    a = job_parser()
+    a = job_conf_parser()
     a.parse("job_sample.conf")
     pass

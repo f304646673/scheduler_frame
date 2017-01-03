@@ -13,8 +13,6 @@ from singleton import singleton
 from scheduler_frame_conf_inst import scheduler_frame_conf_inst 
 
 class scheduler_frame(singleton):
-    _frame_conf_inst = None
-    _job_center = None
 
     def __init__(self, conf_path):
         os.chdir("../../")

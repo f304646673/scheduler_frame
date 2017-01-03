@@ -5,7 +5,6 @@ from loggingex import LOG_WARNING
 from loggingex import LOG_INFO
 
 class mysql_conn():
-    _conn = None
     def __init__(self, host_name, port_num, user_name, password, db_name, charset_name = "utf8"):
         self._conn = MySQLdb.connect(host = host_name, port = port_num, user = user_name, passwd = password, db = db_name, charset = charset_name)
         if None == self._conn:

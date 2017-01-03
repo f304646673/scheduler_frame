@@ -2,7 +2,6 @@ import ConfigParser
 from singleton import singleton
 
 class scheduler_frame_conf_inst(singleton):
-    _cp = None
     
     def load(self, conf_path):
         print("load frame conf %s" % conf_path)
