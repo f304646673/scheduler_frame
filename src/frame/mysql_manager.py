@@ -47,7 +47,19 @@ class mysql_manager():
                 if conn_info_hash in self._conns[conn_name].conns_dict.keys():
                     self._conns[conn_name].index = -1
         self._print_conns()
-    
+ 
+    def get_mysql_conn(self, conn_name):
+        if conn_name not in self._conns.keys():
+            return None
+        conn_info = self._conns[conn_name]
+        index = self._conns[conn_name].index
+        if -1 == index:
+            return None
+        if len(self._conns[conn_name].conns_dict) > index + 1:
+            return None
+        conn = self._conns[conn_name].conns_dict[index]
+        return conn
+
     def _print_conns(self):
         for (conn_name, conn_info) in self._conns.items():
             out_str = "conn name: " + conn_name + "\n"
