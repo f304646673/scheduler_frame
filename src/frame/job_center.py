@@ -3,7 +3,7 @@ import time
 from datetime import date
 from apscheduler.schedulers.background import BackgroundScheduler
 
-import job_conf
+import conf_keys
 from job_conf_parser import job_conf_parser
 from singleton import singleton
 from loggingex import LOG_WARNING
@@ -57,7 +57,7 @@ class job_center(singleton):
         param = ""
         job_type = job_info["type"]
         for key in job_info.keys():
-            if key in job_conf.job_conf_info_dict[job_type]:
+            if key in conf_keys.job_conf_info_dict[job_type]:
                 if  0 != len(params):
                     params += ' , '
                 value = job_info[key]

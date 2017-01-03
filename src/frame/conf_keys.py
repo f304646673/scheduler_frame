@@ -18,4 +18,13 @@ job_conf_info_dict = {
         "day",
         "hour"
     )
-}
+};
+
+
+mysql_conn_keys = [
+    "host", 
+    "port", 
+    "user", 
+    "passwd", 
+    "db", 
+    "charset"];

@@ -1,5 +1,5 @@
 import ConfigParser
-import job_conf
+import conf_keys
 
 class job_conf_parser:
     
@@ -15,11 +15,11 @@ class job_conf_parser:
             job_info = {}
             job_type = cp.get(section, "type")
             job_class = cp.get(section, "class")
-            if job_type not in job_conf.job_conf_info_dict.keys():
+            if job_type not in conf_keys.job_conf_info_dict.keys():
                 continue
             job_info["type"] = job_type
             job_info["class"] = job_class
-            for key in job_conf.job_conf_info_dict[job_type]:
+            for key in conf_keys.job_conf_info_dict[job_type]:
                 if False == cp.has_option(section, key):
                     continue
                 job_info[key] = cp.get(section, key)

@@ -1,8 +1,8 @@
 import json
 import frame_tools
 
+import conf_keys
 from mysql_conn import mysql_conn
-
 from loggingex import LOG_WARNING
 from loggingex import LOG_INFO
 from singleton import singleton
@@ -26,6 +26,10 @@ class mysql_manager(singleton):
                     continue
             else:
                 self._conns[conn_name] = mysql_conn_info()
+
+            for key in conf_keys.mysql_conn_keys:
+                if key not in conn_info.keys():
+                    continue
             conn_obj = mysql_conn(conn_info["host"], conn_info["port"], conn_info["user"], conn_info["passwd"], conn_info["db"], conn_info["charset"])
             conn_obj = "xxx"
             self._conns[conn_name].conns_dict[conn_info_hash] = conn_obj
