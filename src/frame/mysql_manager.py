@@ -59,8 +59,8 @@ class mysql_manager():
         if len(conns_dict_keys) == 0:
             return None
         key = conns_dict_keys[-1]
-        conn = self._conns[conn_name].conns_dict[key]
-        return conn
+        ret_conn = self._conns[conn_name].conns_dict[key]
+        return ret_conn
 
     def _print_conns(self):
         for (conn_name, conn_info) in self._conns.items():
@@ -77,22 +77,37 @@ class mysql_manager():
                 conn.refresh_tables_info()
 
 if __name__ == "__main__":
+    import os
+    os.chdir("../../")
+    
+    from j_load_mysql_conf import j_load_mysql_conf
+    from scheduler_frame_conf_inst import scheduler_frame_conf_inst
+    
+    frame_conf_inst = scheduler_frame_conf_inst()
+    frame_conf_inst.load("./conf/frame.conf")
+    
+    j_load_mysql_conf_obj = j_load_mysql_conf()
+    j_load_mysql_conf_obj.run()
+    
     a = mysql_manager()
-    test_data_1 = {"a1":{"host":"127.0.0.1", "port":123, "user":"fangliang", "passwd":"fl_pwd", "db":"db1", "charset":"utf8"}}
-    a.add_conns(test_data_1)
+    print a.get_mysql_conn("stock_db")
+    print a.get_mysql_conn("stock_part_35")
+
+    #test_data_1 = {"a1":{"host":"127.0.0.1", "port":123, "user":"fangliang", "passwd":"fl_pwd", "db":"db1", "charset":"utf8"}}
+    #a.add_conns(test_data_1)
     
-    print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-    a.add_conns(test_data_1)
+    #print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    #a.add_conns(test_data_1)
     
-    print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-    test_data_2 = {"a2":{"host":"127.0.0.2", "port":123, "user":"fangliang", "passwd":"fl_pwd", "db":"db1", "charset":"utf8"}}
-    a.add_conns(test_data_2)
+    #print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    #test_data_2 = {"a2":{"host":"127.0.0.2", "port":123, "user":"fangliang", "passwd":"fl_pwd", "db":"db1", "charset":"utf8"}}
+    #a.add_conns(test_data_2)
     
-    print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-    test_data_3 = {"a2":{"host":"127.0.0.3", "port":123, "user":"fangliang", "passwd":"fl_pwd", "db":"db1", "charset":"utf8"}}
-    a.modify_conns(test_data_3)
+    #print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    #test_data_3 = {"a2":{"host":"127.0.0.3", "port":123, "user":"fangliang", "passwd":"fl_pwd", "db":"db1", "charset":"utf8"}}
+    #a.modify_conns(test_data_3)
     
-    print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-    test_data_4 = {"a2":{"host":"127.0.0.3", "port":123, "user":"fangliang", "passwd":"fl_pwd", "db":"db1", "charset":"utf8"}}
-    a.remove_conns(test_data_4)
+    #print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    #test_data_4 = {"a2":{"host":"127.0.0.3", "port":123, "user":"fangliang", "passwd":"fl_pwd", "db":"db1", "charset":"utf8"}}
+    #a.remove_conns(test_data_4)
     pass

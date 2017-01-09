@@ -10,6 +10,7 @@ from scheduler_frame_conf_inst import scheduler_frame_conf_inst
 
 from loggingex import LOG_INFO
 from loggingex import LOG_DEBUG
+from loggingex import LOG_WARNING
 
 @singleton
 class j_load_mysql_conf(job_base):
