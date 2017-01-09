@@ -1,9 +1,10 @@
-def singleton(cls, *args, **kw):  
-    instances = {}
+instances = {}
+def singleton(cls, *args, **kw):
+    global instances
     def _singleton(*args, **kw): 
-        if cls not in instances:  
-            instances[cls] = cls(*args, **kw)  
-        return instances[cls]  
+        if cls.__name__ not in instances:  
+            instances[cls.__name__] = cls(*args, **kw)
+        return instances[cls.__name__]  
     return _singleton
 
 if __name__ == "__main__":
@@ -11,6 +12,7 @@ if __name__ == "__main__":
     @singleton
     class singleton_test(object):
         def __init__(self, s_data):
+            print "init"
             self._data = s_data
  
         def run(self):

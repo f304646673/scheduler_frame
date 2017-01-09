@@ -1,4 +1,5 @@
 import re
+import json
 import MySQLdb
 import type_check
 from loggingex import LOG_WARNING
@@ -10,12 +11,11 @@ class mysql_conn():
         if None == self._conn:
             LOG_WARNING("connect mysql %s:%d error" % (host_name, port_num))
             return
-        self._get_tables_info()
+        self.refresh_tables_info()
 
     def __del__(self):
         if self._conn:
             self._conn.close()
-
     
     def _get_tables_info(self):
         tables_info = {}
@@ -31,10 +31,11 @@ class mysql_conn():
             cursor.execute(columns_sql)
             table_info = cursor.fetchall()
             columns_info = self._get_table_info(table_info)
+            print columns_info
             if len(columns_info):
                 tables_info[table_name] = columns_info
         cursor.close()
-        print tables_info
+        return tables_info
 
     def _get_table_info(self, table_info):
         columns_info = {}
@@ -46,7 +47,7 @@ class mysql_conn():
         return columns_info
 
     def _get_column_type_info(self, type_info):
-        re_str = '(\w*)\((\d*)\)'
+        re_str = '(\w*)\((\d*),?.*\)'
         kw = re.findall(re_str, type_info)
         if len(kw):
             if len(kw[0]) > 1:
@@ -70,16 +71,50 @@ class mysql_conn():
         array_str = "(" + array_str + ")"
         return array_str
 
+    def _get_column_type(self, table_name, column_name):
+        if table_name not in self._table_info.keys():
+            return "None"
+        if column_name not in self._table_info[table_name].keys():
+            return "None"
+        return self._table_info[table_name][column_name]["type"]
+    
+    def _conv_data(self, data, type):
+        if type == "varchar" or type == "char":
+            return '"' + data + '"'
+        if type == "float":
+            return "%.2f"  % (float(data))
+
+    def _implode_by_tableinfo(self, data_array, table_name, columns_name_array):
+        array_str = ""
+        if len(data_array) != len(columns_name_array):
+            LOG_WARNING("columns name length != data array length! %s %s " % (json.dumps(data_array), json.dumps(columns_name_array)))
+            return ""
+
+        for index in range(0, len(columns_name_array)):
+            item = data_array[index]
+            column_name = columns_name_array[index]
+            column_type = self._get_column_type(table_name, column_name)
+            if 0 != len(array_str):
+                array_str += ","
+            
+            new_data = self._conv_data(item, column_type)
+            array_str += new_data
+        array_str = "(" + array_str + ")"
+        return array_str
+ 
+    def refresh_tables_info(self):
+        self._table_info = self._get_tables_info()
+
     def insert_data(self, table_name, columns_name, data_array):
         cursor = self._conn.cursor()
         columns = self._implode(columns_name)
         value_list = []
         for item in data_array:
-            value_str = self._implode(item, True)
+            value_str = self._implode_by_tableinfo(item, table_name, columns_name)
             value_list.append(value_str)
         values_sql = ",".join(value_list)
 
-        sql = "insert into " + table_name + columns + " values " + values_sql
+        sql = "insert into " + table_name + columns + " values" + values_sql
         LOG_INFO(sql)
         try:
             cursor.execute(sql)
@@ -89,7 +124,43 @@ class mysql_conn():
             self._conn.rollback()
         cursor.close()
 
+    def insert_onduplicate(self, table_name, data, keys_name):
+        cursor = self._conn.cursor()
+        columns_name = data.keys()
+        columns = self._implode(columns_name)
+        value_list = []
+        data_array = data.values()
+        value_str = self._implode_by_tableinfo(data_array, table_name, columns_name)
 
+        sql = "insert into " + table_name + columns + " values" + value_str
+        
+        update_data = {}
+        for (column_name, column_data) in data.items():
+            if column_name in keys_name:
+                continue
+            update_data[column_name] = column_data
+
+        update_str_list = []
+        for (column_name, column_data) in update_data.items():
+            column_type = self._get_column_type(table_name, column_name)
+            new_data = self._conv_data(column_data, column_type)
+            update_str = column_name + "=" + new_data
+            update_str_list.append(update_str)
+        update_info_str = "," . join(update_str_list)
+
+        if len(update_info_str) != 0:
+            sql = sql + " ON DUPLICATE KEY UPDATE " + update_info_str
+        LOG_INFO(sql)
+        try:
+            cursor.execute(sql)
+            self._conn.commit()
+        except:
+            LOG_WARNING("%s execute error" % (sql))
+            self._conn.rollback()
+        cursor.close()
+        
 if __name__ == "__main__":
-    a = mysql_manager("127.0.0.1", 3306, "root", "fangliang", "stock")
-    a.insert_data("share_base_info", ["share_id", "share_name"], [[1,"2'xxx"], [3,"'4yyy"]])
+    a = mysql_conn("127.0.0.1", 3306, "root", "fangliang", "stock")
+    #a.insert_data("share_base_info", ["share_id", "share_name"], [["000123","2'xxx"], ["000345","'4yyy"]])
+    a.insert_onduplicate("share_base_info", {"share_id":"000123", "share_name":"4YYYYYYYYYYY"}, ["share_id"])
+

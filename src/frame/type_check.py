@@ -96,6 +96,7 @@ if __name__=='__main__':
     print 'IsFloat:',IsFloat(1.2)
     print 'IsString:',IsString('string')
     print 'IsNumber:',IsNumber(15)
+    print 'IsFloat:',IsFloat(-1.5)
     print 'IsEmail:',IsEmail('sgicer@163.com')
     print 'IsChineseChar:',IsChineseChar(u'Ö')
     print 'IsChineseCharString:',IsChineseCharString(u'Ö¹ú')

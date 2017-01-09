@@ -1,5 +1,6 @@
 import json
 import frame_tools
+from collections import OrderedDict
 
 import conf_keys
 from mysql_conn import mysql_conn
@@ -11,8 +12,8 @@ from mysql_conn import mysql_conn
 class mysql_conn_info:
     
     def __init__(self):
-        self.index = -1
-        self.conns_dict = {}
+        self.valid = 0
+        self.conns_dict = OrderedDict()
 
 @singleton
 class mysql_manager():
@@ -32,9 +33,8 @@ class mysql_manager():
                 if key not in conn_info.keys():
                     continue
             conn_obj = mysql_conn(conn_info["host"], conn_info["port"], conn_info["user"], conn_info["passwd"], conn_info["db"], conn_info["charset"])
-            conn_obj = "xxx"
             self._conns[conn_name].conns_dict[conn_info_hash] = conn_obj
-            self._conns[conn_name].index = len(self._conns[conn_name].conns_dict) - 1
+            self._conns[conn_name].valid = 1
         self._print_conns()
 
     def add_conns(self, conns_info):
@@ -45,29 +45,36 @@ class mysql_manager():
             conn_info_hash = frame_tools.hash(json.dumps(conn_info))
             if conn_name in  self._conns.keys():
                 if conn_info_hash in self._conns[conn_name].conns_dict.keys():
-                    self._conns[conn_name].index = -1
+                    self._conns[conn_name].valid = 0
         self._print_conns()
  
     def get_mysql_conn(self, conn_name):
         if conn_name not in self._conns.keys():
             return None
         conn_info = self._conns[conn_name]
-        index = self._conns[conn_name].index
-        if -1 == index:
+        valid = self._conns[conn_name].valid
+        if 0 == valid:
             return None
-        if len(self._conns[conn_name].conns_dict) > index + 1:
+        conns_dict_keys = self._conns[conn_name].conns_dict.keys()
+        if len(conns_dict_keys) == 0:
             return None
-        conn = self._conns[conn_name].conns_dict[index]
+        key = conns_dict_keys[-1]
+        conn = self._conns[conn_name].conns_dict[key]
         return conn
 
     def _print_conns(self):
         for (conn_name, conn_info) in self._conns.items():
             out_str = "conn name: " + conn_name + "\n"
-            out_str = out_str +  "conn info index: " + str(conn_info.index) + "\n"
+            out_str = out_str +  "conn info valid: " + str(conn_info.valid) + "\n"
             for (key, value) in conn_info.conns_dict.items():
                 out_str = out_str + key + str(value) + "\n"
             LOG_INFO(out_str)
-
+    
+    def refresh_all_conns_tables_info(self):
+        for (conn_name, conn_info) in self._conns.items():
+            conn = self.get_mysql_conn(conn_name)
+            if None != conn:
+                conn.refresh_tables_info()
 
 if __name__ == "__main__":
     a = mysql_manager()

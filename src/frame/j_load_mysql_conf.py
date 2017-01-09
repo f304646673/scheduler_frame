@@ -41,18 +41,19 @@ class j_load_mysql_conf(job_base):
         LOG_INFO("add mysql conf %s" % (json.dumps(add_dict)))
         LOG_INFO("modify mysql conf %s" % (json.dumps(modify_dict)))
         LOG_INFO("remove mysql conf %s" % (json.dumps(remove_dict)))
-
-        if 0 == len(add_dict) and 0 == len(modify_dict) or 0 == len(remove_dict):
+    
+        if 0 == len(add_dict) and 0 == len(modify_dict) and 0 == len(remove_dict):
             return
 
         self._pre_mysql_conf_info = mysql_conf_info
+        print self._pre_mysql_conf_info
         
         self._mysql_manager.remove_conns(remove_dict)
         self._mysql_manager.add_conns(add_dict)
         self._mysql_manager.modify_conns(modify_dict)
 
 if __name__ == "__main__":
-    a = j_load_conf()
+    a = j_load_mysql_conf()
     test_data_1 = {"a":"b", "c":"d"}
     a._execute_mysql_conn(test_data_1)
     print "******************************"

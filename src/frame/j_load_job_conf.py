@@ -14,9 +14,9 @@ from loggingex import LOG_DEBUG
 @singleton
 class j_load_job_conf(job_base):
     def __init__(self):
+        self._pre_jobs_info = {}
         self._frame_conf_inst = scheduler_frame_conf_inst()
         self._job_center = job_center()
-        self._pre_jobs_info = {}
 
     def run(self):
         section_name = "strategy_job"
@@ -56,7 +56,7 @@ class j_load_job_conf(job_base):
         self._job_center.add_jobs(add_jobs_info)
 
 if __name__ == "__main__":
-    a = j_load_conf()
+    a = j_load_job_conf()
     test_data_1 = {"a":"b", "c":"d"}
     a._excute_jobs(test_data_1)
     print "******************************"
