@@ -75,4 +75,5 @@ class scheduler_frame():
 if __name__ == "__main__":
     a = scheduler_frame("./conf/frame.conf")
     a.start()
-    time.sleep(1000)
+    while (1):
+        time.sleep(1000)

@@ -202,8 +202,8 @@ class mysql_conn():
         try:
             cursor.execute(sql)
             self._conn.commit()
-        except:
-            LOG_WARNING("%s execute error" % (sql))
+        except MySQLdb.Error, e :
+            LOG_WARNING("%s execute error %s" % (sql, str(e)))
             self._conn.rollback()
         cursor.close()
 

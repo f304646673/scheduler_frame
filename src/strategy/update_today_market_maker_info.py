@@ -23,7 +23,7 @@ class update_today_market_maker_info(job_base):
 
         self._create_table_format = """
             CREATE TABLE `%s` (
-              `seq_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+              `seq_id` bigint(64) NOT NULL AUTO_INCREMENT COMMENT '自增ID',
               `market_type` tinyint(4) NOT NULL DEFAULT '0' COMMENT '1 沪市 2 深市',
               `share_id` char(6) CHARACTER SET latin1 NOT NULL DEFAULT '' COMMENT '股票代码',
               `share_name` varchar(36) COLLATE utf8_unicode_ci NOT NULL DEFAULT '' COMMENT '股票名称',
