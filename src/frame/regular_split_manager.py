@@ -1,3 +1,6 @@
+#coding=utf-8
+#-*- coding: utf-8 -*-
+
 import re
 import sys
 import json
@@ -55,6 +58,10 @@ if __name__ == "__main__":
     import os
     os.chdir("../../")
     
+    import sys
+    reload(sys)
+    sys.setdefaultencoding("utf8")
+
     from scheduler_frame_conf_inst import scheduler_frame_conf_inst
     frame_conf_inst = scheduler_frame_conf_inst()
     frame_conf_inst.load("./conf/frame.conf")
@@ -64,6 +71,15 @@ if __name__ == "__main__":
     j_load_regular_conf_obj.run()
 
     regular_split_manager_obj = regular_split_manager()
-    test_data = """data:["a,b,c", "e,f,g"]"""
-    print regular_split_manager_obj.get_split_data(test_data, "string_comma_regular")
+    #test_data = """data:["a,b,c", "e,f,g"]"""
+    #print regular_split_manager_obj.get_split_data(test_data, "string_comma_regular")
+
+    test_data = """
+    var hq_str_sz000001="ƽ°²ÒÐ,9.150,9.150,9.150,9.160,9.140,9.140,9.150,24105395,220575131.960,2686152,9.140,1061400,9.130,604900,9.120,574700,9.110,572200,9.100,622479,9.150,1839523,9.160,2385519,9.170,1233430,9.180,1339248,9.190,2017-01-10,15:05:03,00";
+    var hq_str_sh601003="Á¸ֹɷÝ4.620,4.650,4.810,4.870,4.610,4.810,4.820,63821968,305063734.000,57920,4.810,193700,4.800,149100,4.790,302500,4.780,237475,4.770,485141,4.820,501400,4.830,217200,4.840,533600,4.850,415400,4.860,2017-01-10,15:00:00,00";
+    var hq_str_sh601001="´óºҵ,6.270,6.270,6.360,6.410,6.230,6.360,6.370,16896165,106949852.000,106776,6.360,94143,6.350,124600,6.340,108580,6.330,85700,6.320,170400,6.370,119500,6.380,139300,6.390,281248,6.400,139800,6.410,2017-01-10,15:00:00,00";
+    var hq_str_sh800001="";
+    """
+    print regular_split_manager_obj.get_split_data(test_data, "hq_sinajs_cn_list")
+
     

@@ -119,6 +119,7 @@ class mysql_conn():
         return self._table_info[table_name][column_name]["type"]
     
     def _conv_data(self, data, type):
+        #print data, type
         if type == "varchar" or type == "char":
             return '"%s"' % (data)
         elif type == "float":
@@ -128,14 +129,14 @@ class mysql_conn():
             except Exception as e:
                 LOG_WARNING("conv %s to %s error" % (data, type))
                 return "0"
-        elif type == "tinyint" or type == "bigint":
+        elif type == "tinyint" or type == "bigint" or type == "int":
             return "%d" % (int(data))
     
     def _implode_by_tableinfo(self, data_array, table_name, columns_name_array):
         array_str = ""
-        if len(data_array) != len(columns_name_array):
-            LOG_WARNING("columns name length != data array length! %s %s " % (json.dumps(data_array), json.dumps(columns_name_array)))
-            return ""
+        #if len(data_array) != len(columns_name_array):
+        #    LOG_WARNING("columns name length != data array length! %s %s " % (json.dumps(data_array), json.dumps(columns_name_array)))
+        #    return ""
 
         for index in range(0, len(columns_name_array)):
             item = data_array[index]
@@ -153,15 +154,19 @@ class mysql_conn():
         self._table_info = self._get_tables_info()
 
     def insert_data(self, table_name, columns_name, data_array):
+        if 0 == len(data_array):
+            return
         columns = self._implode(columns_name)
         value_list = []
         for item in data_array:
             value_str = self._implode_by_tableinfo(item, table_name, columns_name)
             value_list.append(value_str)
         values_sql = ",".join(value_list)
+        if 0 == len(values_sql):
+            return
 
         sql = "insert into " + table_name + columns + " values" + values_sql
-        LOG_INFO(sql)
+        #LOG_INFO(sql)
         self.excute(sql)
 
     def insert_onduplicate(self, table_name, data, keys_name):
@@ -189,7 +194,7 @@ class mysql_conn():
 
         if len(update_info_str) != 0:
             sql = sql + " ON DUPLICATE KEY UPDATE " + update_info_str
-        LOG_INFO(sql)
+        #LOG_INFO(sql)
         self.excute(sql)
     
     def has_table(self, table_name):
