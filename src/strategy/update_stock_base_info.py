@@ -25,6 +25,7 @@ class update_stock_base_info(job_base):
             CREATE TABLE `%s` (
               `share_id` char(6) COLLATE utf8_unicode_ci NOT NULL DEFAULT '000000' COMMENT '股票代码',
               `share_name` varchar(36) COLLATE utf8_unicode_ci NOT NULL DEFAULT '' COMMENT '股票名称',
+              `market_type` tinyint(4) NOT NULL DEFAULT '0' COMMENT '市场 1 沪市 2 深市',
               PRIMARY KEY (`share_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='股票基本信息';
         """
@@ -64,10 +65,11 @@ class update_stock_base_info(job_base):
     def _save_data(self, data):
         data_array = self._regular_split_manager.get_split_data(data, "string_comma_regular")
         for item in data_array:
+            share_market_type = item[0]
             share_id = item[1]
             share_name = item[2]
             if len(share_id) > 0 and len(share_name) > 0:
-                share_info = {"share_id":share_id, "share_name":share_name}
+                share_info = {"share_id":share_id, "share_name":share_name, "market_type":share_market_type}
                 conn = self._db_manager.get_mysql_conn(self._conn_name)
                 conn.insert_onduplicate(self._table_name, share_info, ["share_id"])
 

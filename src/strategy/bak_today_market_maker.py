@@ -22,7 +22,6 @@ class bak_today_market_maker(job_base):
         self._db_manager = mysql_manager()
         self._base_conn_name = "stock_db"
         self._daily_temp_conn_name = "daily_temp"
-        self._market_maker_conn_name = "market_maker"
 
         self._create_table_format = """
             CREATE TABLE `%s` (
@@ -62,16 +61,44 @@ class bak_today_market_maker(job_base):
 
     def _bak_single_market_maker_info(self, share_id, daily_data):
         daily_data_list = []
+        has_between_11_30_and_13_00 = False
+        after_15_00 = False
+        keys_list = []
         for item in daily_data:
             item_list = list(item)
             date_str = item[0]
+            
+            today_11_30 = date_str[:date_str.find(" ")] + " 11:30:00" 
+            today_13_00 = date_str[:date_str.find(" ")] + " 13:00:00"
+            today_15_00 = date_str[:date_str.find(" ")] + " 15:00:00"
+            today_11_30_int = time.mktime(time.strptime(today_11_30,'%Y-%m-%d %H:%M:%S'))
+            today_13_00_int = time.mktime(time.strptime(today_13_00,'%Y-%m-%d %H:%M:%S'))
+            today_15_00_int = time.mktime(time.strptime(today_15_00,'%Y-%m-%d %H:%M:%S'))
+
             date_int = time.mktime(time.strptime(date_str,'%Y-%m-%d %H:%M:%S'))
+            if date_int >= today_11_30_int and date_int < today_13_00_int:
+                if has_between_11_30_and_13_00:
+                    continue
+                else:
+                    has_between_11_30_and_13_00 = True
+
+            if date_int >= today_15_00_int:
+                if after_15_00:
+                    continue
+                else:
+                    after_15_00 = True
+
+            if date_int in keys_list:
+                continue
+            else:
+                keys_list.append(date_int)
+
             item_list[0] = date_int
             daily_data_list.append(item_list)
         keys_array =["time", "price", "up_percent", "market_maker_net_inflow", "market_maker_net_inflow_per",
                 "huge_inflow", "huge_inflow_per", "large_inflow", "large_inflow_per", "medium_inflow", "medium_inflow_per", "small_inflow", "small_inflow_per"]
 
-        share_market_maker_table_name = "stock_" +share_id
+        share_market_maker_table_name = "market_maker_detail_" +share_id
         self._create_table_if_not_exist(share_id, share_market_maker_table_name)
 
         stock_conn_manager_obj = stock_conn_manager()
@@ -82,37 +109,16 @@ class bak_today_market_maker(job_base):
         db_manager = mysql_manager()
         conn = db_manager.get_mysql_conn(self._base_conn_name)
         #share_ids = conn.select("share_base_info", ["share_id"],{})
-        share_ids = conn.select("share_base_info", ["share_id"],{"share_id":"600435"})
+        share_ids = conn.select("share_base_info", ["share_id"],{})
         return share_ids
 
     def  _create_table_if_not_exist(self, share_id, table_name):
         stock_conn_manager_obj = stock_conn_manager()
         conn = stock_conn_manager_obj.get_conn(share_id)
-        print share_id, table_name, conn
         if False == conn.has_table(table_name):
             sql = self._create_table_format % (table_name)
             conn.excute(sql)
             conn.refresh_tables_info()
-
-    def _get_data(self):
-        date_info = time.strftime('%Y-%m-%d')
-        url_fomart = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx/JS.aspx?type=ct&st=(BalFlowMain)&sr=-1&p=3&ps=%d&js=var%%20vDUaFOen={pages:(pc),date:%%22%s%%22,data:[(x)]}&token=894050c76af8597a853f5b408b759f5d&cmd=C._AB&sty=DCFFITA&rt=49430148"
-        url = format(url_fomart % (3500, date_info))
-        res = ""
-        tried = False
-        while True:
-            try:
-                req = urllib2.Request(url)
-                res_data = urllib2.urlopen(req)
-                res = res_data.read()
-                break
-            except Exception as e:
-                LOG_ERROR("request error: %s"  % e)
-                if tried:
-                    break
-                else:
-                    tried = True
-        return res
 
 if __name__ == "__main__":
     import os
