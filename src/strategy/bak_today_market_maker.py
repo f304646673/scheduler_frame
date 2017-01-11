@@ -107,9 +107,15 @@ class bak_today_market_maker(job_base):
 
     def _get_all_share_ids(self):
         db_manager = mysql_manager()
-        conn = db_manager.get_mysql_conn(self._base_conn_name)
+        #conn = db_manager.get_mysql_conn(self._base_conn_name)
         #share_ids = conn.select("share_base_info", ["share_id"],{})
-        share_ids = conn.select("share_base_info", ["share_id"],{})
+        #share_ids = conn.select("share_base_info", ["share_id"],{})
+
+        #share_ids_list = []
+        date_info = time.strftime('%Y_%m_%d')
+        trade_table_name = "trade_info_%s" % (date_info)
+        daily_temp_conn = db_manager.get_mysql_conn(self._daily_temp_conn_name)
+        share_ids = daily_temp_conn.select(trade_table_name, ["share_id"],{}, pre = "distinct")
         return share_ids
 
     def  _create_table_if_not_exist(self, share_id, table_name):

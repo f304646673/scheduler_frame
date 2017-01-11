@@ -19,7 +19,7 @@ class stock_conn_manager():
 
     def get_conn(self, share_id):
         share_id_int = int(share_id)
-        share_id_part_no = share_id_int % 100
+        share_id_part_no = share_id_int % 300
         conn_name = "stock_part_%d" % (share_id_part_no)
         db_manager = mysql_manager()
         conn = db_manager.get_mysql_conn(conn_name)
