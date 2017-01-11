@@ -29,9 +29,9 @@ class j_load_job_conf(job_base):
         
         job_conf_parser_obj = job_conf_parser()
         jobs_info = job_conf_parser_obj.parse(conf_path)
-        self._excute_jobs(jobs_info)
+        self._execute_jobs(jobs_info)
 
-    def _excute_jobs(self, jobs_info):
+    def _execute_jobs(self, jobs_info):
         add_dict = {}
         remove_dict = {}
         modify_dict = {}
@@ -58,25 +58,25 @@ class j_load_job_conf(job_base):
 if __name__ == "__main__":
     a = j_load_job_conf()
     test_data_1 = {"a":"b", "c":"d"}
-    a._excute_jobs(test_data_1)
+    a._execute_jobs(test_data_1)
     print "******************************"
     
     test_data_2 = {"a":"b", "c":"d"}
-    a._excute_jobs(test_data_2)
+    a._execute_jobs(test_data_2)
     print "******************************"
     
     test_data_3 = {"c":"d"}
-    a._excute_jobs(test_data_3)
+    a._execute_jobs(test_data_3)
     print "******************************"
     
     test_data_4 = {"a":"b", "c":"d"}
-    a._excute_jobs(test_data_4)
+    a._execute_jobs(test_data_4)
     print "******************************"
     
     test_data_5 = {"a":"b", "c":"d", "e":"f"}
-    a._excute_jobs(test_data_5)
+    a._execute_jobs(test_data_5)
     print "******************************"
     
     test_data_6 = {"a":"g", "c":"d", "e":"f"}
-    a._excute_jobs(test_data_6)
+    a._execute_jobs(test_data_6)
     print "******************************"

@@ -79,7 +79,7 @@ class update_today_trade_info(job_base):
         conn = db_manager.get_mysql_conn(self._conn_name)
         if False == conn.has_table(table_name):
             sql = self._create_table_format % (table_name)
-            conn.excute(sql)
+            conn.execute(sql)
             conn.refresh_tables_info()
 
     def _get_all_share_ids(self):

@@ -50,6 +50,7 @@ class update_today_market_maker_info(job_base):
         self._create_table_if_not_exist(table_name)
 
         data = self._get_data()
+        data =data.replace("-,", "0,")
         self._parse_data_and_insert_db(table_name, data)
         LOG_INFO("run update_today_market_maker_info")
 
@@ -58,7 +59,7 @@ class update_today_market_maker_info(job_base):
         conn = db_manager.get_mysql_conn(self._conn_name)
         if False == conn.has_table(table_name):
             sql = self._create_table_format % (table_name)
-            conn.excute(sql)
+            conn.execute(sql)
             conn.refresh_tables_info()
 
     def _get_data(self):

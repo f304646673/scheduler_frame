@@ -4,19 +4,22 @@ job_conf_info_dict = {
         "day",
         "hour",
         "minute",
-        "second"
+        "second",
+        "timezone"
     ),
     "interval":(
         "start_date",
         "hours",
         "minutes",
-        "seconds"
+        "seconds",
+        "timezone"
     ),
     "date":(
         "year",
         "month",
         "day",
-        "hour"
+        "hour",
+        "timezone"
     )
 };
 

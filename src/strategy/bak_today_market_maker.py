@@ -117,7 +117,7 @@ class bak_today_market_maker(job_base):
         conn = stock_conn_manager_obj.get_conn(share_id)
         if False == conn.has_table(table_name):
             sql = self._create_table_format % (table_name)
-            conn.excute(sql)
+            conn.execute(sql)
             conn.refresh_tables_info()
 
 if __name__ == "__main__":

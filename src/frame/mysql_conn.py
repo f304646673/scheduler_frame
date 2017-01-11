@@ -7,39 +7,85 @@ from loggingex import LOG_INFO
 
 class mysql_conn():
     def __init__(self, host_name, port_num, user_name, password, db_name, charset_name = "utf8"):
+        self._host = host_name
+        self._port = int(port_num)
+        self._user = user_name
+        self._passwd = password
+        self._db = db_name
+        self._charset = charset_name
+        self._conn = None
+        self._table_info = {}
+        self._connect()
+
+    def __del__(self):
+        self._try_close_connect()
+
+    def _connect(self):
+        self._try_close_connect()
+        
         try:
-            self._conn = MySQLdb.connect(host = host_name, port = int(port_num), user = user_name, passwd = password, db = db_name, charset = charset_name)
-            LOG_WARNING("connect mysql %s:%d %s" % (host_name, port_num, db_name))
+            self._conn = MySQLdb.connect(host = self._host, port = self._port, user = self._user, passwd = self._passwd, db = self._db, charset = self._charset)
+            LOG_INFO("connect %s success" %(self._db))
+            self.refresh_tables_info()
+            return
+        except MySQLdb.Error, e :
+            if e.args[0] == 1049:
+                self._create_db()
+            else:
+                LOG_WARNING("%s connect error %s" % (self._db, str(e)))
+                return
         except Exception as e:
-            LOG_WARNING("connect mysql %s:%d %s error" % (host_name, int(port_num), db_name))
-            conn = MySQLdb.connect(host=host_name, port=int(port_num), user=user_name,passwd=password)
-            cursor = conn.cursor()
-            sql = """create database if not exists %s""" %(db_name)
-            LOG_INFO(sql)
-            cursor.execute(sql)
-            conn.select_db(db_name);
-            conn.commit()
-            cursor.close()
-            conn.close()
+            LOG_WARNING("connect mysql %s:%d %s error" % (self._host, self._port, self._db))
+            return 
 
         try:
-            self._conn = MySQLdb.connect(host = host_name, port = int(port_num), user = user_name, passwd = password, db = db_name, charset = charset_name)
+            self._conn = MySQLdb.connect(host = self._host, port = self._port, user = self._user, passwd = self._passwd, db = self._db, charset = self._charset)
+            LOG_INFO("connect %s success" %(self._db))
+            self.refresh_tables_info()
+            return
         except Exception as e:
-            LOG_WARNING("connect mysql %s:%d %s error" % (host_name, int(port_num), db_name))
+            LOG_WARNING("connect mysql %s:%d %s error" % (self._host, self._port, self._db))
             return
         
         if None == self._conn:
-            LOG_WARNING("connect mysql %s:%d %s error" % (host_name, int(port_num), db_name))
+            LOG_WARNING("connect mysql %s:%d %s error" % (self._host, self._port, self._db))
             return
-
-        self.refresh_tables_info()
-
-    def __del__(self):
-        if self._conn:
+    
+    def _try_close_connect(self):
+        if None == self._conn:
+            return
+        try:
             self._conn.close()
- 
+        except MySQLdb.Error, e :
+            LOG_WARNING("%s %s" % (self._db, str(e)))
+        except Exception as e:
+            LOG_WARNING("%s %s" % (self._db, str(e)))
+        finally:
+            self._conn = None
+
+    def _create_db(self):
+        conn = None
+        cursor = None
+        try:
+            conn = MySQLdb.connect(host=self._host, port=self._port, user=self._user, passwd=self._passwd)
+            cursor = conn.cursor()
+            sql = """create database if not exists %s""" %(self._db)
+            #LOG_INFO(sql)
+            cursor.execute(sql)
+            conn.select_db(self._db);
+            conn.commit()
+        except MySQLdb.Error, e :
+            LOG_WARNING("%s execute error %s" % (sql, str(e)))
+        finally:
+            try:
+                if cursor:
+                    cursor.close()
+                if conn:
+                    conn.close()
+            except:
+                pass
+
     def select(self, table_name, fields_array, conditions):
-        cursor = self._conn.cursor()
         fields_str = "," . join(fields_array)
         conds = []
         for (column_name, column_data) in conditions.items():
@@ -52,29 +98,23 @@ class mysql_conn():
         sql = "select " + fields_str + " from " + table_name
         if len(conds_str) > 0:
             sql = sql + " where " + conds_str
-
-        cursor.execute(sql)
-        data_info = cursor.fetchall()
-        cursor.close()
+        
+        data_info = self.execute(sql)
         return data_info
 
     def _get_tables_info(self):
         tables_info = {}
-        cursor = self._conn.cursor()
         tables_sql = "show tables"
-        cursor.execute(tables_sql)
-        tables_name = cursor.fetchall()
+        tables_name = self.execute(tables_sql)
         for table_name_item in tables_name:
             table_name = table_name_item[0]
             if 0 == len(table_name):
                 continue
             columns_sql = "show columns from " + table_name 
-            cursor.execute(columns_sql)
-            table_info = cursor.fetchall()
+            table_info = self.execute(columns_sql)
             columns_info = self._get_table_info(table_info)
             if len(columns_info):
                 tables_info[table_name] = columns_info
-        cursor.close()
         return tables_info
 
     def _get_table_info(self, table_info):
@@ -112,6 +152,8 @@ class mysql_conn():
         return array_str
 
     def _get_column_type(self, table_name, column_name):
+        if 0 == len(self._table_info):
+            self.refresh_tables_info()
         if table_name not in self._table_info.keys():
             return "None"
         if column_name not in self._table_info[table_name].keys():
@@ -119,7 +161,6 @@ class mysql_conn():
         return self._table_info[table_name][column_name]["type"]
     
     def _conv_data(self, data, type):
-        #print data, type
         if type == "varchar" or type == "char":
             return '"%s"' % (data)
         elif type == "float":
@@ -134,9 +175,9 @@ class mysql_conn():
     
     def _implode_by_tableinfo(self, data_array, table_name, columns_name_array):
         array_str = ""
-        #if len(data_array) != len(columns_name_array):
-        #    LOG_WARNING("columns name length != data array length! %s %s " % (json.dumps(data_array), json.dumps(columns_name_array)))
-        #    return ""
+        if len(data_array) != len(columns_name_array):
+            LOG_WARNING("columns name length != data array length! %s %s " % (json.dumps(data_array), json.dumps(columns_name_array)))
+            return ""
 
         for index in range(0, len(columns_name_array)):
             item = data_array[index]
@@ -167,7 +208,7 @@ class mysql_conn():
 
         sql = "insert into " + table_name + columns + " values" + values_sql
         #LOG_INFO(sql)
-        self.excute(sql)
+        self.execute(sql)
 
     def insert_onduplicate(self, table_name, data, keys_name):
         columns_name = data.keys()
@@ -195,23 +236,41 @@ class mysql_conn():
         if len(update_info_str) != 0:
             sql = sql + " ON DUPLICATE KEY UPDATE " + update_info_str
         #LOG_INFO(sql)
-        self.excute(sql)
+        self.execute(sql)
     
     def has_table(self, table_name):
+        if 0 == len(self._table_info):
+            self.refresh_tables_info()
         if table_name in self._table_info.keys():
             return True
         return False
 
-    def excute(self, sql):
-        cursor = self._conn.cursor()
-        try:
-            cursor.execute(sql)
-            self._conn.commit()
-        except MySQLdb.Error, e :
-            LOG_WARNING("%s execute error %s" % (sql, str(e)))
-            self._conn.rollback()
-        cursor.close()
-
+    def execute(self, sql):
+        try_count = 0
+        while try_count < 2:
+            cursor = self._conn.cursor()
+            try:
+                cursor.execute(sql)
+                data = cursor.fetchall()
+                self._conn.commit()
+                break
+            except MySQLdb.Error, e :
+                if 2006 == e.args[0] or 2013 == e.args[0]:
+                    LOG_WARNING("%s execute error %s" % (sql, str(e)))
+                    LOG_INFO("retry connect db")
+                    self._connect()
+                    try_count = try_count + 1
+                    continue
+                else:
+                    LOG_WARNING("%s execute error %s" % (sql, str(e)))
+                    self._conn.rollback()
+                    data = ()
+                    break
+            except Exception as e:
+                LOG_WARNING("excute %s error %s" % (sql, str(e)))
+            finally:
+                cursor.close()
+        return data
 
 if __name__ == "__main__":
     a = mysql_conn("127.0.0.1", 3306, "root", "fangliang", "stock")

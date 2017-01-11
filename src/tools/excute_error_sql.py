@@ -32,7 +32,7 @@ def run(file_path, regular, conn_name):
             #print item
             db_manager = mysql_manager()
             conn = db_manager.get_mysql_conn(conn_name)
-            conn.excute(item)
+            conn.execute(item)
 
 if __name__ == "__main__":
     run("./log/nomal.log.wec_bak", "(insert into market_maker_2017_01_10.*\)) execute error", "daily_temp")
