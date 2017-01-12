@@ -1,5 +1,6 @@
 import re
 import json
+import time
 import MySQLdb
 import type_check
 from loggingex import LOG_WARNING
@@ -15,12 +16,12 @@ class mysql_conn():
         self._charset = charset_name
         self._conn = None
         self._table_info = {}
-        self._connect()
+        self.re_connect()
 
     def __del__(self):
         self._try_close_connect()
 
-    def _connect(self):
+    def re_connect(self):
         self._try_close_connect()
         
         try:
@@ -102,19 +103,20 @@ class mysql_conn():
         if len(conds_str) > 0:
             sql = sql + " where " + conds_str
         
-        data_info = self.execute(sql)
+        data_info = self.execute(sql, True)
         return data_info
 
     def _get_tables_info(self):
         tables_info = {}
         tables_sql = "show tables"
-        tables_name = self.execute(tables_sql)
+        tables_name = self.execute(tables_sql, True)
         for table_name_item in tables_name:
             table_name = table_name_item[0]
             if 0 == len(table_name):
                 continue
             columns_sql = "show columns from " + table_name 
-            table_info = self.execute(columns_sql)
+            table_info = self.execute(columns_sql, True)
+            table_name = table_name_item[0]
             columns_info = self._get_table_info(table_info)
             if len(columns_info):
                 tables_info[table_name] = columns_info
@@ -214,7 +216,7 @@ class mysql_conn():
 
         sql = "insert into " + table_name + columns + " values" + values_sql
         #LOG_INFO(sql)
-        self.execute(sql)
+        self.execute(sql, commit = True)
 
     def insert_onduplicate(self, table_name, data, keys_name):
         columns_name = data.keys()
@@ -242,7 +244,7 @@ class mysql_conn():
         if len(update_info_str) != 0:
             sql = sql + " ON DUPLICATE KEY UPDATE " + update_info_str
         #LOG_INFO(sql)
-        self.execute(sql)
+        self.execute(sql, commit = True)
     
     def has_table(self, table_name):
         if 0 == len(self._table_info):
@@ -251,31 +253,48 @@ class mysql_conn():
             return True
         return False
 
-    def execute(self, sql):
+    def execute(self, sql, select=False, commit=False):
         try_count = 0
         while try_count < 2:
             cursor = self._conn.cursor()
             try:
+                data = ()
                 cursor.execute(sql)
-                data = cursor.fetchall()
-                self._conn.commit()
+                if select:
+                    data = cursor.fetchall()
+                if commit:
+                    self._conn.commit()
+                cursor.close()
                 break
             except MySQLdb.Error, e :
-                if 2006 == e.args[0] or 2013 == e.args[0]:
+                cursor.close()
+                if 2006 == e.args[0]:
                     LOG_WARNING("%s execute error %s" % (sql, str(e)))
                     LOG_INFO("retry connect db")
-                    self._connect()
+                    self.re_connect()
+                    LOG_INFO("retry execute %s" % (sql))
                     try_count = try_count + 1
                     continue
+                elif 2013 == e.args[0]:
+                    LOG_WARNING("%s execute error %s" % (sql, str(e)))
+                    #LOG_INFO("retry connect db")
+                    #self.re_connect()
+                    break
+                elif 2014 == e.args[0]:
+                    LOG_WARNING("%s execute error %s" % (sql, str(e)))
+                    try_count = try_count + 1
+                    LOG_INFO("retry execute %s" % (sql))
+                    continue
+                elif 1050 == e.args[0]:
+                    break
                 else:
                     LOG_WARNING("%s execute error %s" % (sql, str(e)))
                     self._conn.rollback()
-                    data = ()
                     break
             except Exception as e:
-                LOG_WARNING("excute %s error %s" % (sql, str(e)))
-            finally:
                 cursor.close()
+                LOG_WARNING("excute %s error %s" % (sql, str(e)))
+                break
         return data
 
 if __name__ == "__main__":

@@ -67,8 +67,9 @@ class update_today_trade_info(job_base):
         date_info = time.strftime('%Y_%m_%d')
         table_name = "trade_info_%s" % (date_info)
         self._create_table_if_not_exist(table_name)
-        ids_str_list = self._get_all_share_ids()
         
+        #print "get_trade data"
+        ids_str_list = self._get_all_share_ids()
         for ids_str in ids_str_list:
             data = self._get_data(ids_str)
             self._parse_data_and_insert_db(table_name, data)
@@ -79,8 +80,13 @@ class update_today_trade_info(job_base):
         conn = db_manager.get_mysql_conn(self._conn_name)
         if False == conn.has_table(table_name):
             sql = self._create_table_format % (table_name)
+            #print "begin create table %s" % (table_name)
             conn.execute(sql)
+            #print "end create table %s" % (table_name)
+            LOG_INFO("create table %s" % (table_name))
+            #print "begin refresh create table %s" % (table_name)
             conn.refresh_tables_info()
+            #print "end refresh create table %s" % (table_name)
 
     def _get_all_share_ids(self):
         db_manager = mysql_manager()
