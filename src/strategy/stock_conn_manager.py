@@ -9,8 +9,8 @@ from loggingex import LOG_INFO
 from loggingex import LOG_ERROR
 from loggingex import LOG_WARNING
 
-from mysql_manager import mysql_manager
 from singleton import singleton
+from mysql_manager import mysql_manager
 
 @singleton
 class stock_conn_manager():
