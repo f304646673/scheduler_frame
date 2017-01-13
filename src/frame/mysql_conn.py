@@ -26,7 +26,7 @@ class mysql_conn():
         self._try_close_connect()
         
         try:
-            pool = PooledDB(creator=MySQLdb, mincached=1, maxcached=20, maxconnections = 3, host = self._host, port = self._port, user = self._user, passwd = self._passwd, db = self._db, charset = self._charset)
+            pool = PooledDB(creator=MySQLdb, mincached=1, maxcached=3, maxconnections = 3, host = self._host, port = self._port, user = self._user, passwd = self._passwd, db = self._db, charset = self._charset)
             self._conn = pool.connection()  
             LOG_INFO("connect %s success" %(self._db))
             self.refresh_tables_info()
