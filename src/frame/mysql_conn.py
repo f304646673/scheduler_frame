@@ -265,7 +265,8 @@ class mysql_conn():
             cursor.close()
         except Exception as e:
             cursor.close()
-            LOG_WARNING("excute %s error %s" % (sql, str(e)))
+            LOG_WARNING("excute sql error %s" % (str(e)))
+            LOG_ERROR_SQL("%s" % (sql))
         return data
 
 if __name__ == "__main__":

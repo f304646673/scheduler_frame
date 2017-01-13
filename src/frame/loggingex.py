@@ -46,6 +46,10 @@ class loggingex():
         log_warning_error_critical = logging.getLogger('logger_LogWarningErrorCritical')
         log_warning_error_critical.critical(msg)
  
+    def log_error_sql(self, msg):
+        log_error_sql = logging.getLogger('logger_SQL_ERROR')
+        log_error_sql.critical(msg)
+
 def LOG_INIT(conf_path):
     global logger_obj
     logger_obj = loggingex(conf_path)
@@ -91,16 +95,24 @@ def LOG_CRITICAL(msg):
     new_msg = modify_msg(msg)
     try:
         logger_obj.log_critical(new_msg)
-    except Exception as e:
+    except exception as e:
         print new_msg
 
+def LOG_ERROR_SQL(msg):
+    try:
+        logger_obj.log_error_sql(msg)
+    except exception as e:
+        print msg
+
+
 if __name__ == "__main__":
-    LOG_INIT("../conf/log.conf")
+    LOG_INIT("../../conf/log.conf")
     LOG_DEBUG('LOG_DEBUG')
     LOG_INFO('LOG_INFO')
     LOG_WARNING('LOG_WARNING')
     LOG_ERROR('LOG_ERROR')
     LOG_CRITICAL('LOG_CRITICAL')
+    LOG_ERROR_SQL("Create XXX Error")
     #global logger_obj
     #logger_obj.log_debug('XXXXXXXXXXXX')
     print "Hello World"
