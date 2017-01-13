@@ -15,7 +15,7 @@ class mysql_conn():
         self._passwd = password
         self._db = db_name
         self._charset = charset_name
-        self._conn = None
+        self._pool = None
         self._table_info = {}
         self.re_connect()
 
@@ -26,8 +26,7 @@ class mysql_conn():
         self._try_close_connect()
         
         try:
-            pool = PooledDB(creator=MySQLdb, mincached=1, maxcached=3, maxconnections = 3, host = self._host, port = self._port, user = self._user, passwd = self._passwd, db = self._db, charset = self._charset)
-            self._conn = pool.connection()  
+            self._pool = PooledDB(creator=MySQLdb, mincached=1, maxcached=20, maxconnections = 3, host = self._host, port = self._port, user = self._user, passwd = self._passwd, db = self._db, charset = self._charset)
             LOG_INFO("connect %s success" %(self._db))
             self.refresh_tables_info()
             return
@@ -42,8 +41,8 @@ class mysql_conn():
             return 
 
         try:
-            pool = PooledDB(creator=MySQLdb, mincached=1, maxcached=20, host = self._host, port = self._port, user = self._user, passwd = self._passwd, db = self._db, charset = self._charset)
-            self._conn = pool.connection()  
+            self._pool = PooledDB(creator=MySQLdb, mincached=1, maxcached=20, maxconnections = 3, host = self._host, port = self._port, user = self._user, passwd = self._passwd, db = self._db, charset = self._charset)
+            pool = PersistentDB(creator=MySQLdb, mincached=1, maxcached=3, maxconnections = 3, host = self._host, port = self._port, user = self._user, passwd = self._passwd, db = self._db, charset = self._charset)
             LOG_INFO("connect %s success" %(self._db))
             self.refresh_tables_info()
             return
@@ -51,21 +50,21 @@ class mysql_conn():
             LOG_WARNING("connect mysql %s:%d %s error" % (self._host, self._port, self._db))
             return
         
-        if None == self._conn:
+        if None == self._pool:
             LOG_WARNING("connect mysql %s:%d %s error" % (self._host, self._port, self._db))
             return
     
     def _try_close_connect(self):
-        if None == self._conn:
+        if None == self._pool:
             return
         try:
-            self._conn.close()
+            self._pool.close()
         except MySQLdb.Error, e :
             LOG_WARNING("%s %s" % (self._db, str(e)))
         except Exception as e:
             LOG_WARNING("%s %s" % (self._db, str(e)))
         finally:
-            self._conn = None
+            self._pool = None
 
     def _create_db(self):
         conn = None
@@ -106,19 +105,19 @@ class mysql_conn():
         if len(conds_str) > 0:
             sql = sql + " where " + conds_str
         
-        data_info = self.execute(sql)
+        data_info = self.execute(sql, select = True)
         return data_info
 
     def _get_tables_info(self):
         tables_info = {}
         tables_sql = "show tables"
-        tables_name = self.execute(tables_sql)
+        tables_name = self.execute(tables_sql, select = True)
         for table_name_item in tables_name:
             table_name = table_name_item[0]
             if 0 == len(table_name):
                 continue
             columns_sql = "show columns from " + table_name 
-            table_info = self.execute(columns_sql)
+            table_info = self.execute(columns_sql, select = True)
             table_name = table_name_item[0]
             columns_info = self._get_table_info(table_info)
             if len(columns_info):
@@ -256,17 +255,23 @@ class mysql_conn():
             return True
         return False
 
-    def execute(self, sql, commit=False):
+    def execute(self, sql, select = False, commit=False):
         try:
-            cursor = self._conn.cursor()
+            conn = self._pool.connection()
+            cursor = conn.cursor()
             data = cursor.execute(sql)
+            if select:
+                data = cursor.fetchall()
             if commit:
-                self._conn.commit()
+                conn.commit()
             cursor.close()
         except Exception as e:
-            cursor.close()
             LOG_WARNING("excute sql error %s" % (str(e)))
             LOG_ERROR_SQL("%s" % (sql))
+        finally:
+            cursor.close()
+            conn.close()
+
         return data
 
 if __name__ == "__main__":
