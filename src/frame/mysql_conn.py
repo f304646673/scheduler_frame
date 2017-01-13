@@ -3,6 +3,7 @@ import json
 import time
 import MySQLdb
 import type_check
+from DBUtils.PooledDB import PooledDB
 from loggingex import LOG_WARNING
 from loggingex import LOG_INFO
 
@@ -25,7 +26,8 @@ class mysql_conn():
         self._try_close_connect()
         
         try:
-            self._conn = MySQLdb.connect(host = self._host, port = self._port, user = self._user, passwd = self._passwd, db = self._db, charset = self._charset)
+            pool = PooledDB(creator=MySQLdb, mincached=1, maxcached=20, host = self._host, port = self._port, user = self._user, passwd = self._passwd, db = self._db, charset = self._charset)
+            self._conn = pool.connection()  
             LOG_INFO("connect %s success" %(self._db))
             self.refresh_tables_info()
             return
@@ -40,7 +42,8 @@ class mysql_conn():
             return 
 
         try:
-            self._conn = MySQLdb.connect(host = self._host, port = self._port, user = self._user, passwd = self._passwd, db = self._db, charset = self._charset)
+            pool = PooledDB(creator=MySQLdb, mincached=1, maxcached=20, host = self._host, port = self._port, user = self._user, passwd = self._passwd, db = self._db, charset = self._charset)
+            self._conn = pool.connection()  
             LOG_INFO("connect %s success" %(self._db))
             self.refresh_tables_info()
             return
@@ -103,19 +106,19 @@ class mysql_conn():
         if len(conds_str) > 0:
             sql = sql + " where " + conds_str
         
-        data_info = self.execute(sql, True)
+        data_info = self.execute(sql)
         return data_info
 
     def _get_tables_info(self):
         tables_info = {}
         tables_sql = "show tables"
-        tables_name = self.execute(tables_sql, True)
+        tables_name = self.execute(tables_sql)
         for table_name_item in tables_name:
             table_name = table_name_item[0]
             if 0 == len(table_name):
                 continue
             columns_sql = "show columns from " + table_name 
-            table_info = self.execute(columns_sql, True)
+            table_info = self.execute(columns_sql)
             table_name = table_name_item[0]
             columns_info = self._get_table_info(table_info)
             if len(columns_info):
@@ -253,48 +256,16 @@ class mysql_conn():
             return True
         return False
 
-    def execute(self, sql, select=False, commit=False):
-        try_count = 0
-        while try_count < 2:
+    def execute(self, sql, commit=False):
+        try:
             cursor = self._conn.cursor()
-            try:
-                data = ()
-                cursor.execute(sql)
-                if select:
-                    data = cursor.fetchall()
-                if commit:
-                    self._conn.commit()
-                cursor.close()
-                break
-            except MySQLdb.Error, e :
-                cursor.close()
-                if 2006 == e.args[0]:
-                    LOG_WARNING("%s execute error %s" % (sql, str(e)))
-                    LOG_INFO("retry connect db")
-                    self.re_connect()
-                    LOG_INFO("retry execute %s" % (sql))
-                    try_count = try_count + 1
-                    continue
-                elif 2013 == e.args[0]:
-                    LOG_WARNING("%s execute error %s" % (sql, str(e)))
-                    #LOG_INFO("retry connect db")
-                    #self.re_connect()
-                    break
-                elif 2014 == e.args[0]:
-                    LOG_WARNING("%s execute error %s" % (sql, str(e)))
-                    try_count = try_count + 1
-                    LOG_INFO("retry execute %s" % (sql))
-                    continue
-                elif 1050 == e.args[0]:
-                    break
-                else:
-                    LOG_WARNING("%s execute error %s" % (sql, str(e)))
-                    self._conn.rollback()
-                    break
-            except Exception as e:
-                cursor.close()
-                LOG_WARNING("excute %s error %s" % (sql, str(e)))
-                break
+            data = cursor.execute(sql)
+            if commit:
+                self._conn.commit()
+            cursor.close()
+        except Exception as e:
+            cursor.close()
+            LOG_WARNING("excute %s error %s" % (sql, str(e)))
         return data
 
 if __name__ == "__main__":
