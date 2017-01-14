@@ -4,8 +4,10 @@ import time
 import MySQLdb
 import type_check
 from DBUtils.PooledDB import PooledDB
+
 from loggingex import LOG_WARNING
 from loggingex import LOG_INFO
+from loggingex import LOG_ERROR_SQL
 
 class mysql_conn():
     def __init__(self, host_name, port_num, user_name, password, db_name, charset_name = "utf8"):
@@ -162,8 +164,10 @@ class mysql_conn():
         if 0 == len(self._table_info):
             self.refresh_tables_info()
         if table_name not in self._table_info.keys():
+            LOG_WARNING("table_%s info in not exist" %(table_name))
             return "None"
         if column_name not in self._table_info[table_name].keys():
+            LOG_WARNING("column name %s is not in table %s" % (column_name, table_name))
             return "None"
         return self._table_info[table_name][column_name]["type"]
     
@@ -257,6 +261,7 @@ class mysql_conn():
 
     def execute(self, sql, select = False, commit=False):
         try:
+            data = ()
             conn = self._pool.connection()
             cursor = conn.cursor()
             data = cursor.execute(sql)

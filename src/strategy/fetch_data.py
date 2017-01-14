@@ -60,14 +60,11 @@ class regular_split:
         ret_array = regular_split_mgr.get_split_data(self._data, self._regular_name)
         return ret_array
 
-def get_data(queries):
-    results = []
-    for item in queries:
-        if False == hasattr(item, "get_data"):
-            continue
-        result = item.get_data()
-        results.append(result)
-    return results
+def get_data(query_item):
+    if False == hasattr(query_item, "get_data"):
+        return None
+    result = query_item.get_data()
+    return result
 
 if __name__ == "__main__":
     import os
@@ -87,12 +84,12 @@ if __name__ == "__main__":
     j_load_mysql_conf_obj.run()
 
     qh1 = query_http("http://hq.sinajs.cn/?list=sz000001")
-    data_list = get_data([qh1])
-    for item in data_list:
-        rs1 = regular_split("hq_sinajs_cn_list", item)
-        print get_data([rs1])
+    data_list = get_data(qh1)
+    
+    rs1 = regular_split("hq_sinajs_cn_list", item)
+    print get_data(rs1)
 
 
     #sd1 = select_db("stock_db","share_base_info", ["share_id"],{})
-    #print get_data([sd1])
+    #print get_data(sd1)
 

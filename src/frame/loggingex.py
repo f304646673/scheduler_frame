@@ -95,13 +95,13 @@ def LOG_CRITICAL(msg):
     new_msg = modify_msg(msg)
     try:
         logger_obj.log_critical(new_msg)
-    except exception as e:
+    except Exception as e:
         print new_msg
 
 def LOG_ERROR_SQL(msg):
     try:
         logger_obj.log_error_sql(msg)
-    except exception as e:
+    except Exception as e:
         print msg
 
 

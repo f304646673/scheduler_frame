@@ -8,11 +8,14 @@ import time
 import urllib2
 sys.path.append("../frame/")
 
+import fetch_data
+
 from loggingex import LOG_INFO
 from loggingex import LOG_ERROR
 from loggingex import LOG_WARNING
 
 from job_base import job_base
+from prepare_table import prepare_table
 from mysql_manager import mysql_manager
 
 from stock_conn_manager import stock_conn_manager
@@ -20,52 +23,15 @@ from stock_conn_manager import stock_conn_manager
 class bak_today_trade(job_base):
     def __init__(self):
         self._db_manager = mysql_manager()
-        self._base_conn_name = "stock_db"
         self._daily_temp_conn_name = "daily_temp"
-
-        self._create_table_format = """
-            CREATE TABLE `%s` (
-              `time` bigint(64) NOT NULL COMMENT '数据时间',
-              `today_open` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '今日开盘价',
-              `yesteday_close` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '昨天收盘价',
-              `cur` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '当前价格',
-              `today_high` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '今日最高',
-              `today_low` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '今日最低',
-              `compete_buy_price` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '竞买价格（买一价格）',
-              `compete_sale_price` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '竞卖价格（卖一价格）',
-              `trade_num` bigint(64) NOT NULL DEFAULT '0' COMMENT '成交的股票数',
-              `trade_price` float(32,2) NOT NULL DEFAULT '0.00' COMMENT '成交的金额',
-              `buy_1_num` bigint(64) NOT NULL DEFAULT '0' COMMENT '买一数量',
-              `buy_1_price` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '买一价格',
-              `buy_2_num` bigint(64) NOT NULL DEFAULT '0' COMMENT '买二数量',
-              `buy_2_price` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '买二价格',
-              `buy_3_num` bigint(64) NOT NULL DEFAULT '0' COMMENT '买三数量',
-              `buy_3_price` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '买三价格',
-              `buy_4_num` bigint(64) NOT NULL DEFAULT '0' COMMENT '买四数量',
-              `buy_4_price` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '买四价格',
-              `buy_5_num` bigint(64) NOT NULL DEFAULT '0' COMMENT '买五数量',
-              `buy_5_price` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '买五价格',
-              `sale_1_num` bigint(64) NOT NULL DEFAULT '0' COMMENT '卖一数量',
-              `sale_1_price` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '卖一价格',
-              `sale_2_num` bigint(64) NOT NULL DEFAULT '0' COMMENT '卖二数量',
-              `sale_2_price` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '卖二价格',
-              `sale_3_num` bigint(64) NOT NULL DEFAULT '0' COMMENT '卖三数量',
-              `sale_3_price` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '卖三价格',
-              `sale_4_num` bigint(64) NOT NULL DEFAULT '0' COMMENT '卖四数量',
-              `sale_4_price` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '卖四价格',
-              `sale_5_num` bigint(64) NOT NULL DEFAULT '0' COMMENT '卖五数量',
-              `sale_5_price` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '卖五价格',
-              PRIMARY KEY (`time`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='今日交易数据';
-        """
     
     def run(self):
         share_ids = self._get_all_share_ids()
         for share_id  in share_ids:
-            self._bak_market_maker_info(share_id[0])
+            self._bak_trade_info(share_id[0])
         LOG_INFO("run bak_today_trade")
     
-    def _bak_market_maker_info(self, share_id):
+    def _bak_trade_info(self, share_id):
         date_info = time.strftime('%Y_%m_%d')
         table_name = "trade_info_%s" % (date_info)
         db_manager = mysql_manager()
@@ -122,27 +88,25 @@ class bak_today_trade(job_base):
                 "buy_5_num","buy_5_price","sale_1_num","sale_1_price","sale_2_num","sale_2_price","sale_3_num","sale_3_price","sale_4_num","sale_4_price",
                 "sale_5_num","sale_5_price"]
 
-        share_market_maker_table_name = "trade_info_detail_" +share_id
-        self._create_table_if_not_exist(share_id, share_market_maker_table_name)
+        share_trade_info_table_name = "trade_info_detail_" +share_id
+        self._create_table_if_not_exist(share_id, share_trade_info_table_name)
 
         stock_conn_manager_obj = stock_conn_manager()
         conn = stock_conn_manager_obj.get_conn(share_id)
-        conn.insert_data(share_market_maker_table_name, keys_array, daily_data_list)
+        print daily_data_list
+        conn.insert_data(share_trade_info_table_name, keys_array, daily_data_list)
 
     def _get_all_share_ids(self):
-        db_manager = mysql_manager()
-        conn = db_manager.get_mysql_conn(self._base_conn_name)
-        #share_ids = conn.select("share_base_info", ["share_id"],{"share_id":"000001"})
-        share_ids = conn.select("share_base_info", ["share_id"],{})
+        date_info = time.strftime('%Y_%m_%d')
+        trade_table_name = "trade_info_%s" % (date_info)
+        share_ids = fetch_data.get_data(fetch_data.select_db(self._daily_temp_conn_name, trade_table_name, ["share_id"],{}, pre = "distinct"))
         return share_ids
 
-    def  _create_table_if_not_exist(self, share_id, table_name):
+    def _create_table_if_not_exist(self, share_id, table_name):
         stock_conn_manager_obj = stock_conn_manager()
-        conn = stock_conn_manager_obj.get_conn(share_id)
-        if False == conn.has_table(table_name):
-            sql = self._create_table_format % (table_name)
-            conn.execute(sql)
-            conn.refresh_tables_info()
+        conn_name = stock_conn_manager_obj.get_conn_name(share_id)
+        prepare_table_obj = prepare_table(conn_name, "trade_info")
+        prepare_table_obj.prepare(table_name)
 
 if __name__ == "__main__":
     import os

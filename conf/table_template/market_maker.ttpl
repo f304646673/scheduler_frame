@@ -1,0 +1,16 @@
+CREATE TABLE `%s` (
+  `time` bigint(64) NOT NULL COMMENT '数据时间',
+  `price` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '股票价格',
+  `up_percent` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '涨幅',
+  `market_maker_net_inflow` float(64,2) NOT NULL DEFAULT '0.00' COMMENT '主力净流入',
+  `market_maker_net_inflow_per` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '主力净流入占比',
+  `huge_inflow` float(64,2) NOT NULL DEFAULT '0.00' COMMENT '超大单净流入',
+  `huge_inflow_per` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '超大单净流入占比',
+  `large_inflow` float(64,2) NOT NULL DEFAULT '0.00' COMMENT '大单净流入',
+  `large_inflow_per` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '大单净流入占比',
+  `medium_inflow` float(64,2) NOT NULL DEFAULT '0.00' COMMENT '中单净流入',
+  `medium_inflow_per` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '中单净流入占比',
+  `small_inflow` float(64,2) NOT NULL DEFAULT '0.00' COMMENT '小单净流入',
+  `small_inflow_per` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '小单净流入占比',
+  PRIMARY KEY (`time`)
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='主力行为统计';

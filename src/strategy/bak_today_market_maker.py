@@ -8,11 +8,14 @@ import time
 import urllib2
 sys.path.append("../frame/")
 
+import fetch_data
+
 from loggingex import LOG_INFO
 from loggingex import LOG_ERROR
 from loggingex import LOG_WARNING
 
 from job_base import job_base
+from prepare_table import prepare_table
 from mysql_manager import mysql_manager
 
 from stock_conn_manager import stock_conn_manager
@@ -20,27 +23,7 @@ from stock_conn_manager import stock_conn_manager
 class bak_today_market_maker(job_base):
     def __init__(self):
         self._db_manager = mysql_manager()
-        self._base_conn_name = "stock_db"
         self._daily_temp_conn_name = "daily_temp"
-
-        self._create_table_format = """
-            CREATE TABLE `%s` (
-              `time` bigint(64) NOT NULL COMMENT '数据时间',
-              `price` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '股票价格',
-              `up_percent` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '涨幅',
-              `market_maker_net_inflow` float(64,2) NOT NULL DEFAULT '0.00' COMMENT '主力净流入',
-              `market_maker_net_inflow_per` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '主力净流入占比',
-              `huge_inflow` float(64,2) NOT NULL DEFAULT '0.00' COMMENT '超大单净流入',
-              `huge_inflow_per` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '超大单净流入占比',
-              `large_inflow` float(64,2) NOT NULL DEFAULT '0.00' COMMENT '大单净流入',
-              `large_inflow_per` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '大单净流入占比',
-              `medium_inflow` float(64,2) NOT NULL DEFAULT '0.00' COMMENT '中单净流入',
-              `medium_inflow_per` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '中单净流入占比',
-              `small_inflow` float(64,2) NOT NULL DEFAULT '0.00' COMMENT '小单净流入',
-              `small_inflow_per` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '小单净流入占比',
-              PRIMARY KEY (`time`)
-            ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='主力行为统计';
-        """
     
     def run(self):
         share_ids = self._get_all_share_ids()
@@ -51,12 +34,11 @@ class bak_today_market_maker(job_base):
     def _bak_market_maker_info(self, share_id):
         date_info = time.strftime('%Y_%m_%d')
         table_name = "market_maker_%s" % (date_info)
-        db_manager = mysql_manager()
-        conn = db_manager.get_mysql_conn(self._daily_temp_conn_name)
         
         fields_array =["time_str", "price", "up_percent", "market_maker_net_inflow", "market_maker_net_inflow_per",
                 "huge_inflow", "huge_inflow_per", "large_inflow", "large_inflow_per", "medium_inflow", "medium_inflow_per", "small_inflow", "small_inflow_per"]
-        daily_data = conn.select(table_name, fields_array, {"share_id":share_id})
+        
+        daily_data = fetch_data.get_data(fetch_data.select_db(self._daily_temp_conn_name, table_name, fields_array, {"share_id":share_id}))
         self._bak_single_market_maker_info(share_id, daily_data)
 
     def _bak_single_market_maker_info(self, share_id, daily_data):
@@ -98,7 +80,7 @@ class bak_today_market_maker(job_base):
         keys_array =["time", "price", "up_percent", "market_maker_net_inflow", "market_maker_net_inflow_per",
                 "huge_inflow", "huge_inflow_per", "large_inflow", "large_inflow_per", "medium_inflow", "medium_inflow_per", "small_inflow", "small_inflow_per"]
 
-        share_market_maker_table_name = "market_maker_detail_" +share_id
+        share_market_maker_table_name = "market_maker_detail_" + share_id
         self._create_table_if_not_exist(share_id, share_market_maker_table_name)
 
         stock_conn_manager_obj = stock_conn_manager()
@@ -106,26 +88,17 @@ class bak_today_market_maker(job_base):
         conn.insert_data(share_market_maker_table_name, keys_array, daily_data_list)
 
     def _get_all_share_ids(self):
-        db_manager = mysql_manager()
-        #conn = db_manager.get_mysql_conn(self._base_conn_name)
-        #share_ids = conn.select("share_base_info", ["share_id"],{})
-        #share_ids = conn.select("share_base_info", ["share_id"],{})
-
-        #share_ids_list = []
         date_info = time.strftime('%Y_%m_%d')
         trade_table_name = "trade_info_%s" % (date_info)
-        daily_temp_conn = db_manager.get_mysql_conn(self._daily_temp_conn_name)
-        share_ids = daily_temp_conn.select(trade_table_name, ["share_id"],{}, pre = "distinct")
+        share_ids = fetch_data.get_data(fetch_data.select_db(self._daily_temp_conn_name, trade_table_name, ["share_id"],{}, pre = "distinct"))
         return share_ids
 
-    def  _create_table_if_not_exist(self, share_id, table_name):
+    def _create_table_if_not_exist(self, share_id, table_name):
         stock_conn_manager_obj = stock_conn_manager()
-        conn = stock_conn_manager_obj.get_conn(share_id)
-        if False == conn.has_table(table_name):
-            sql = self._create_table_format % (table_name)
-            conn.execute(sql)
-            conn.refresh_tables_info()
-
+        conn_name = stock_conn_manager_obj.get_conn_name(share_id)
+        prepare_table_obj = prepare_table(conn_name, "market_maker")
+        prepare_table_obj.prepare(table_name)
+        
 if __name__ == "__main__":
     import os
     os.chdir("../../")
