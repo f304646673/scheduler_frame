@@ -29,7 +29,6 @@ class update_stock_daily_info(job_base):
         for id_market_type in share_id_market_type:
             share_id = id_market_type[0]
             market_type = id_market_type[1]
-            print share_id
             self._query_save_data(share_id, market_type)           
         LOG_INFO("run update_stock_daily_info")
 
