@@ -93,7 +93,6 @@ class bak_today_trade(job_base):
 
         stock_conn_manager_obj = stock_conn_manager()
         conn = stock_conn_manager_obj.get_conn(share_id)
-        print daily_data_list
         conn.insert_data(share_trade_info_table_name, keys_array, daily_data_list)
 
     def _get_all_share_ids(self):
