@@ -16,17 +16,18 @@ from mysql_manager import mysql_manager
 from regular_split_manager import regular_split_manager
 
 class select_db:
-    def __init__(self, conn_name, table_name, select_columns, conditions, pre=""):
+    def __init__(self, conn_name, table_name, select_columns, conditions, pre="", extend=""):
         self._conn_name = conn_name
         self._table_name = table_name
         self._select_columns = select_columns
         self._conditions = conditions
         self._pre = pre
+        self._extend = extend
 
     def get_data(self):
         db_manager = mysql_manager()
         conn = db_manager.get_mysql_conn(self._conn_name)
-        result = conn.select(self._table_name, self._select_columns, self._conditions, self._pre)
+        result = conn.select(self._table_name, self._select_columns, self._conditions, self._pre, self._extend)
         return result
 
 class query_http:
@@ -83,11 +84,14 @@ if __name__ == "__main__":
     j_load_mysql_conf_obj = j_load_mysql_conf()
     j_load_mysql_conf_obj.run()
 
-    qh1 = query_http("http://hq.sinajs.cn/?list=sz000001")
+    qh1 = query_http("http://quotes.money.163.com/service/chddata.html?code=1000001&start=19910102&end=20170113&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;TURNOVER;VOTURNOVER;VATURNOVER;TCAP;MCAP")
     data_list = get_data(qh1)
+    print data_list
+    #qh1 = query_http("http://hq.sinajs.cn/?list=sz000001")
+    #data_list = get_data(qh1)
     
-    rs1 = regular_split("hq_sinajs_cn_list", item)
-    print get_data(rs1)
+    #rs1 = regular_split("hq_sinajs_cn_list", item)
+    #print get_data(rs1)
 
 
     #sd1 = select_db("stock_db","share_base_info", ["share_id"],{})

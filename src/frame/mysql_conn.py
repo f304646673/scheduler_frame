@@ -90,22 +90,37 @@ class mysql_conn():
             except:
                 pass
 
-    def select(self, table_name, fields_array, conditions, pre = ""):
+    def select(self, table_name, fields_array, conditions, pre = "", extend = ""):
         fields_str = "," . join(fields_array)
         conds = []
         for (column_name, column_data) in conditions.items():
             column_type = self._get_column_type(table_name, column_name)
-            new_data = self._conv_data(column_data, column_type)
-            try:
-                cond = column_name + " = " + new_data
+            if isinstance(column_data, list):
+                new_datas = []
+                for item in column_data:
+                    new_data = self._conv_data(item, column_type)
+                    try:
+                        new_datas.append(new_data)
+                    except:
+                        LOG_WARNING("%s %s conv error" %(item, column_type))
+                temp_str = "," . join(new_datas)
+                cond = column_name + " in (" + temp_str + ")"
                 conds.append(cond)
-            except:
-                LOG_WARNING("%s %s conv error" %(column_data, column_type))
+            else:
+                new_data = self._conv_data(column_data, column_type)
+                try:
+                    cond = column_name + " = " + new_data
+                    conds.append(cond)
+                except:
+                    LOG_WARNING("%s %s conv error" %(column_data, column_type))
         conds_str = " and " . join(conds)
 
         sql = "select " + pre + " " + fields_str + " from " + table_name
         if len(conds_str) > 0:
             sql = sql + " where " + conds_str
+        
+        if len(extend) > 0:
+            sql = sql + " " + extend
         
         data_info = self.execute(sql, select = True)
         return data_info
@@ -174,10 +189,10 @@ class mysql_conn():
     def _conv_data(self, data, type):
         if type == "varchar" or type == "char":
             return '"%s"' % (data)
-        elif type == "float":
+        elif type == "float" or type == "double":
             try:
                 conv_data = float(data)
-                return "%.2f"  % (conv_data)
+                return "%.4f"  % (conv_data)
             except Exception as e:
                 LOG_WARNING("conv %s to %s error" % (data, type))
                 return "0"
