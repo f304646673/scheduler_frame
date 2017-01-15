@@ -5,6 +5,7 @@ import os
 import re
 import sys
 import time
+import socket
 import urllib2
 sys.path.append("../frame/")
 
@@ -39,12 +40,13 @@ class query_http:
         tried = False
         while True:
             try:
+                socket.setdefaulttimeout(15)
                 req = urllib2.Request(self._url)
                 res_data = urllib2.urlopen(req)
                 res = res_data.read()
                 break
             except Exception as e:
-                LOG_ERROR("request error: %s"  % e)
+                LOG_ERROR("request error: %s %s"  % (self._url ,e))
                 if tried:
                     break
                 else:

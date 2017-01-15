@@ -29,6 +29,7 @@ class update_stock_daily_info(job_base):
         for id_market_type in share_id_market_type:
             share_id = id_market_type[0]
             market_type = id_market_type[1]
+            print share_id
             self._query_save_data(share_id, market_type)           
         LOG_INFO("run update_stock_daily_info")
 
@@ -60,7 +61,6 @@ class update_stock_daily_info(job_base):
 
         start_time_obj = time.localtime(start_time_int)
         start_time_str = time.strftime("%Y%m%d", start_time_obj)
-        print start_time_str
         data = self._get_data(market_type, share_id, start_time_str, end_time_str)
         filter_data = self._filter_data(data)
         self._save_data(share_id, table_name, filter_data)
@@ -87,6 +87,7 @@ class update_stock_daily_info(job_base):
         return res
     
     def _filter_data(self, data):
+        data = data.replace("None", "0")
         filter_data = fetch_data.get_data(fetch_data.regular_split("quotes_money_163", data))
         if len(filter_data) > 0:
             del filter_data[0]
@@ -96,6 +97,8 @@ class update_stock_daily_info(job_base):
             item.insert(0, time_int)
             del item[2]
             del item[2]
+            if item[2] == 0:
+                del item
         return filter_data
 
     def _save_data(self, share_id, table_name, data):

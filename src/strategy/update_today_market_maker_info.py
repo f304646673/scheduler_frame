@@ -29,7 +29,7 @@ class update_today_market_maker_info(job_base):
         self._prepare_table.prepare(table_name)
 
         data = self._get_data()
-        data =data.replace("-,", "0,")
+        data = data.replace("-,", "0,")
         self._parse_data_and_insert_db(table_name, data)
         LOG_INFO("run update_today_market_maker_info")
 
