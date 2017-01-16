@@ -16,7 +16,7 @@ from loggingex import LOG_WARNING
 from mysql_conf_parser import mysql_conf_parser
 from scheduler_frame_conf_inst import scheduler_frame_conf_inst
 
-def drop_all_datebases():
+def repair_all_tables(table_name, sql_tpl):
     section_name = "mysql_manager"
     option_name = "conf_path"
     frame_conf_inst = scheduler_frame_conf_inst()
@@ -29,16 +29,26 @@ def drop_all_datebases():
     mysql_conf_parser_obj = mysql_conf_parser()
     mysql_conf_info = mysql_conf_parser_obj.parse(conf_path)
     for conn_name, conn_info in mysql_conf_info.items():
-        drop_datebase(conn_info["host"],int(conn_info["port"]),conn_info["user"],conn_info["passwd"],conn_info["db"])
+        repair_table(conn_info["host"],int(conn_info["port"]),conn_info["user"],conn_info["passwd"],conn_info["db"], table_name, sql_tpl)
 
-def drop_datebase(host_name, port_num, user_name, password, db_name):
+def repair_table(host_name, port_num, user_name, password, db_name, table_name ,sql_tpl):
     conn = None
     cursor = None
     try:
-        conn = MySQLdb.connect(host=host_name, port=port_num, user=user_name, passwd=password)
+        conn = MySQLdb.connect(host=host_name, port=port_num, user=user_name, passwd=password, db = db_name)
         cursor = conn.cursor()
-        sql = """drop database %s""" %(db_name)
+        sql = """show tables"""
         cursor.execute(sql)
+        tables_name = cursor.fetchall()
+        for table_name_item in tables_name:
+            table_name_in_db = table_name_item[0]
+            if table_name not in table_name_in_db:
+                continue
+            new_sql = sql_tpl % table_name_in_db
+            print new_sql
+            data = cursor.execute(new_sql)
+            conn.commit()
+            print data
     except MySQLdb.Error, e :
         LOG_WARNING("%s execute error %s" % (sql, str(e)))
     finally:
@@ -58,4 +68,4 @@ if __name__ == "__main__":
     import sys
     reload(sys)
     sys.setdefaultencoding("utf8")
-    drop_all_datebases()
+    repair_all_tables("daily_info_" , "delete from %s where volume = 0")

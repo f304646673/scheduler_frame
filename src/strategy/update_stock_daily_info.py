@@ -75,7 +75,7 @@ class update_stock_daily_info(job_base):
     def _get_all_share_ids(self):
         date_info = time.strftime('%Y_%m_%d')
         trade_table_name = "trade_info_%s" % (date_info)
-        share_ids = fetch_data.get_data(fetch_data.select_db("daily_temp", trade_table_name, ["share_id"],{}, pre = "distinct"))
+        share_ids = fetch_data.get_data(fetch_data.select_db("daily_temp", trade_table_name, ["share_id"],{"share_id":"000600"}, pre = "distinct"))
         return share_ids
     
     def _get_data(self, market_type, id, start_time, end_time):
@@ -90,15 +90,17 @@ class update_stock_daily_info(job_base):
         filter_data = fetch_data.get_data(fetch_data.regular_split("quotes_money_163", data))
         if len(filter_data) > 0:
             del filter_data[0]
+        useful_data = []
         for item in filter_data:
+            if int(item[-1]) == 0:
+                continue
             time_str = item[0]
             time_int = time.mktime(time.strptime(time_str,'%Y-%m-%d'))
             item.insert(0, time_int)
             del item[2]
             del item[2]
-            if item[2] == 0:
-                del item
-        return filter_data
+            useful_data.append(item)
+        return useful_data
 
     def _save_data(self, share_id, table_name, data):
         into_db_columns = ["time","time_str","today_close","today_high","today_low","today_open","yesteday_close","pchg","turnover_rate","volume"]
