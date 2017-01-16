@@ -40,7 +40,11 @@ class update_stock_daily_info(job_base):
             last_day = last_time[0][0]
             tz = pytz.timezone('Asia/Shanghai')
             last_day_obj = datetime.datetime.fromtimestamp(last_day, tz)
-            next_day_obj = last_day_obj + datetime.timedelta(days = 1)
+            while True:
+                next_day_obj = last_day_obj + datetime.timedelta(days = 1)
+                if next_day_obj.weekday() < 5:
+                    break
+                last_day_obj = next_day_obj
             time_str = next_day_obj.strftime("%Y%m%d")
         else:
             time_str = "19900101"
@@ -55,9 +59,9 @@ class update_stock_daily_info(job_base):
         start_time_int = self._get_start_time(share_id, table_name)
         end_time_str = time.strftime('%Y%m%d')
         end_time_int = time.mktime(time.strptime(end_time_str, '%Y%m%d'))
-        if end_time_int <= start_time_int:
+        if end_time_int < start_time_int:
             return
-
+        
         start_time_obj = time.localtime(start_time_int)
         start_time_str = time.strftime("%Y%m%d", start_time_obj)
         data = self._get_data(market_type, share_id, start_time_str, end_time_str)
@@ -75,7 +79,7 @@ class update_stock_daily_info(job_base):
     def _get_all_share_ids(self):
         date_info = time.strftime('%Y_%m_%d')
         trade_table_name = "trade_info_%s" % (date_info)
-        share_ids = fetch_data.get_data(fetch_data.select_db("daily_temp", trade_table_name, ["share_id"],{"share_id":"000600"}, pre = "distinct"))
+        share_ids = fetch_data.get_data(fetch_data.select_db("daily_temp", trade_table_name, ["share_id"],{}, pre = "distinct"))
         return share_ids
     
     def _get_data(self, market_type, id, start_time, end_time):
