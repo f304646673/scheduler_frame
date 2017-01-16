@@ -192,7 +192,7 @@ class mysql_conn():
         elif type == "float" or type == "double":
             try:
                 conv_data = float(data)
-                return "%.4f"  % (conv_data)
+                return "%.8f"  % (conv_data)
             except Exception as e:
                 LOG_WARNING("conv %s to %s error" % (data, type))
                 return "0"
