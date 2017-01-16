@@ -9,5 +9,6 @@ CREATE TABLE `%s` (
   `pchg` float(16,4) NOT NULL DEFAULT '0.0000' COMMENT '涨跌幅',
   `turnover_rate` float(16,4) NOT NULL DEFAULT '0.0000' COMMENT '换手率',
   `volume` bigint(32) NOT NULL DEFAULT '0' COMMENT '成交量',
+  `turnover` float(32,2) NOT NULL DEFAULT '0.0000' COMMENT '成交金额',
   PRIMARY KEY (`time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='股票日线数据';

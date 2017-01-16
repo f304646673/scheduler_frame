@@ -68,4 +68,5 @@ if __name__ == "__main__":
     import sys
     reload(sys)
     sys.setdefaultencoding("utf8")
-    repair_all_tables("daily_info_" , "delete from %s where volume = 0")
+    #repair_all_tables("daily_info_" , "delete from %s where volume = 0")
+    repair_all_tables("daily_info_" , "DROP TABLE IF EXISTS %s")

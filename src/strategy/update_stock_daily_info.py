@@ -83,7 +83,7 @@ class update_stock_daily_info(job_base):
         return share_ids
     
     def _get_data(self, market_type, id, start_time, end_time):
-        url_format = """http://quotes.money.163.com/service/chddata.html?code=%d%s&start=%s&end=%s&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;PCHG;TURNOVER;VOTURNOVER"""
+        url_format = """http://quotes.money.163.com/service/chddata.html?code=%d%s&start=%s&end=%s&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;PCHG;TURNOVER;VOTURNOVER;VATURNOVER"""
         url = url_format % (market_type, id, start_time, end_time)
         res = fetch_data.get_data(fetch_data.query_http(url))
         #res = res.decode("gbk").encode("utf-8")
@@ -96,7 +96,7 @@ class update_stock_daily_info(job_base):
             del filter_data[0]
         useful_data = []
         for item in filter_data:
-            if int(item[-1]) == 0:
+            if int(item[-2]) == 0:
                 continue
             time_str = item[0]
             time_int = time.mktime(time.strptime(time_str,'%Y-%m-%d'))
@@ -107,7 +107,7 @@ class update_stock_daily_info(job_base):
         return useful_data
 
     def _save_data(self, share_id, table_name, data):
-        into_db_columns = ["time","time_str","today_close","today_high","today_low","today_open","yesteday_close","pchg","turnover_rate","volume"]
+        into_db_columns = ["time","time_str","today_close","today_high","today_low","today_open","yesteday_close","pchg","turnover_rate","volume","turnover"]
         columns_count = len(into_db_columns)
 
         for item in data:
