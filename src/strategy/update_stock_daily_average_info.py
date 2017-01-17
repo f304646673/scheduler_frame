@@ -37,6 +37,7 @@ class update_stock_daily_average_info(job_base):
     def _get_all_share_ids(self):
         date_info = time.strftime('%Y_%m_%d')
         trade_table_name = "trade_info_%s" % (date_info)
+        #share_ids = fetch_data.get_data(fetch_data.select_db("daily_temp", trade_table_name, ["share_id"],{"share_id":[["000001","000301","000601","000901","002101","002401","002701","300001","300301","600301","600601","601801","603001","603601","603901",],"in"]}, pre = "distinct"))
         share_ids = fetch_data.get_data(fetch_data.select_db("daily_temp", trade_table_name, ["share_id"],{}, pre = "distinct"))
         return share_ids
 
@@ -49,22 +50,22 @@ class update_stock_daily_average_info(job_base):
             tz = pytz.timezone('Asia/Shanghai')
             last_day_obj = datetime.datetime.fromtimestamp(last_day, tz)
             time_str = last_day_obj.strftime("%Y%m%d")
+            return time.mktime(time.strptime(time_str, '%Y%m%d'))
         else:
-            time_str = "19900101"
-        return time.mktime(time.strptime(time_str, '%Y%m%d'))
-    
+            return 0
+
     def _get_start_time(self, share_id, table_name, ma_empty_start_time):
         stock_conn_manager_obj = stock_conn_manager()
         conn_name = stock_conn_manager_obj.get_conn_name(share_id)
-        last_time = fetch_data.get_data(fetch_data.select_db(conn_name, table_name, ["time"], {"time":[ma_empty_start_time, "<="]}, extend="order by time asc limit 180"))
+        last_time = fetch_data.get_data(fetch_data.select_db(conn_name, table_name, ["time"], {"time":[ma_empty_start_time, "<="]}, extend="order by time desc limit 180"))
         if len(last_time) > 0:
-            last_day = last_time[0][0]
+            last_day = last_time[-1][0]
             tz = pytz.timezone('Asia/Shanghai')
             last_day_obj = datetime.datetime.fromtimestamp(last_day, tz)
             time_str = last_day_obj.strftime("%Y%m%d")
+            return time.mktime(time.strptime(time_str, '%Y%m%d'))
         else:
-            time_str = "19900101"
-        return time.mktime(time.strptime(time_str, '%Y%m%d'))
+            return ma_empty_start_time
 
     def _get_close_volume(self, share_id, table_name, start_time):
         stock_conn_manager_obj = stock_conn_manager()
@@ -100,6 +101,8 @@ class update_stock_daily_average_info(job_base):
 
     def _calc_average_data(self, share_id, table_name):
         ma_empty_start_time_int = self._get_ma_empty_start_time(share_id, table_name)
+        if ma_empty_start_time_int == 0:
+            return []
         start_time_int = self._get_start_time(share_id, table_name, ma_empty_start_time_int)
         stock_info = self._get_close_volume(share_id, table_name, start_time_int)
         periods = [5, 10, 20, 30, 60, 90, 180]
