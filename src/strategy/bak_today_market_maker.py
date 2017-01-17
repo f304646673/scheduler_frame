@@ -38,7 +38,7 @@ class bak_today_market_maker(job_base):
         fields_array =["time_str", "price", "up_percent", "market_maker_net_inflow", "market_maker_net_inflow_per",
                 "huge_inflow", "huge_inflow_per", "large_inflow", "large_inflow_per", "medium_inflow", "medium_inflow_per", "small_inflow", "small_inflow_per"]
         
-        daily_data = fetch_data.get_data(fetch_data.select_db(self._daily_temp_conn_name, table_name, fields_array, {"share_id":share_id}))
+        daily_data = fetch_data.get_data(fetch_data.select_db(self._daily_temp_conn_name, table_name, fields_array, {"share_id":[share_id, "="]}))
         self._bak_single_market_maker_info(share_id, daily_data)
 
     def _bak_single_market_maker_info(self, share_id, daily_data):

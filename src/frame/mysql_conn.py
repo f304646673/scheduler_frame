@@ -93,8 +93,10 @@ class mysql_conn():
     def select(self, table_name, fields_array, conditions, pre = "", extend = ""):
         fields_str = "," . join(fields_array)
         conds = []
-        for (column_name, column_data) in conditions.items():
+        for (column_name, column_data_info) in conditions.items():
             column_type = self._get_column_type(table_name, column_name)
+            column_data = column_data_info[0]
+            operation = column_data_info[1]
             if isinstance(column_data, list):
                 new_datas = []
                 for item in column_data:
@@ -104,12 +106,12 @@ class mysql_conn():
                     except:
                         LOG_WARNING("%s %s conv error" %(item, column_type))
                 temp_str = "," . join(new_datas)
-                cond = column_name + " in (" + temp_str + ")"
+                cond = column_name + " " + operation  + " (" + temp_str + ")"
                 conds.append(cond)
             else:
                 new_data = self._conv_data(column_data, column_type)
                 try:
-                    cond = column_name + " = " + new_data
+                    cond = column_name + " " + operation + " " + new_data
                     conds.append(cond)
                 except:
                     LOG_WARNING("%s %s conv error" %(column_data, column_type))
@@ -238,6 +240,37 @@ class mysql_conn():
         sql = "insert into " + table_name + columns + " values" + values_sql
         #LOG_INFO(sql)
         self.execute(sql, commit = True)
+    
+    def update(self, table_name, data, keys_name):
+        key_data = {}
+        update_data = {}
+        for (column_name, column_data) in data.items():
+            if column_name in keys_name:
+                key_data[column_name] = column_data
+            else:
+                update_data[column_name] = column_data
+        
+        update_str_list = []
+        for (column_name, column_data) in update_data.items():
+            column_type = self._get_column_type(table_name, column_name)
+            new_data = self._conv_data(column_data, column_type)
+            update_str = column_name + "=" + new_data
+            update_str_list.append(update_str)
+        update_info_str = "," . join(update_str_list)
+        
+        cond_str_list = []
+        for (column_name, column_data) in key_data.items():
+            column_type = self._get_column_type(table_name, column_name)
+            new_data = self._conv_data(column_data, column_type)
+            cond_str = column_name + "=" + new_data
+            cond_str_list.append(cond_str)
+        cond_info_str = " AND " . join(cond_str_list)
+
+        sql = "UPDATE %s SET %s" % (table_name, update_info_str)
+        if 0 != len(cond_info_str):
+            sql = sql + " where " + cond_info_str
+        
+        self.execute(sql, commit = True)
 
     def insert_onduplicate(self, table_name, data, keys_name):
         columns_name = data.keys()
@@ -298,5 +331,5 @@ if __name__ == "__main__":
     a = mysql_conn("127.0.0.1", 3306, "root", "fangliang", "stock")
     #a.insert_data("share_base_info", ["share_id", "share_name"], [["000123","2'xxx"], ["000345","'4yyy"]])
     #a.insert_onduplicate("share_base_info", {"share_id":"000123", "share_name":"4YYYYYYYYYYY"}, ["share_id"])
-    a.select("share_base_info", ["share_id"], {"share_id":"000001"})
+    a.select("share_base_info", ["share_id"], {"share_id":["000001", "="]})
 

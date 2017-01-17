@@ -69,4 +69,25 @@ if __name__ == "__main__":
     reload(sys)
     sys.setdefaultencoding("utf8")
     #repair_all_tables("daily_info_" , "delete from %s where volume = 0")
-    repair_all_tables("daily_info_" , "DROP TABLE IF EXISTS %s")
+    #repair_all_tables("daily_info_" , "DROP TABLE IF EXISTS %s")
+
+    modify = """
+        ALTER TABLE `%s`
+        ADD COLUMN `close_ma5`  float(16,2) NOT NULL DEFAULT 0 COMMENT '收盘价5日均值' AFTER `turnover`,
+        ADD COLUMN `close_ma10`  float(16,2) NOT NULL DEFAULT 0 COMMENT '收盘价10日均值' AFTER `close_ma5`,
+        ADD COLUMN `close_ma20`  float(16,2) NOT NULL DEFAULT 0 COMMENT '收盘价20日均值' AFTER `close_ma10`,
+        ADD COLUMN `close_ma30`  float(16,2) NOT NULL DEFAULT 0 COMMENT '收盘价30日均值' AFTER `close_ma20`,
+        ADD COLUMN `close_ma60`  float(16,2) NOT NULL DEFAULT 0 COMMENT '收盘价60日均值' AFTER `close_ma30`,
+        ADD COLUMN `close_ma90`  float(16,2) NOT NULL DEFAULT 0 COMMENT '收盘价90日均值' AFTER `close_ma60`,
+        ADD COLUMN `close_ma180`  float(16,2) NOT NULL DEFAULT 0 COMMENT '收盘价180日均值' AFTER `close_ma90`,
+        ADD COLUMN `volume_ma5`  float(16,2) NOT NULL DEFAULT 0 COMMENT '成交量5日均值' AFTER `close_ma180`,
+        ADD COLUMN `volume_ma10`  float(16,2) NOT NULL DEFAULT 0 COMMENT '成交量10日均值' AFTER `volume_ma5`,
+        ADD COLUMN `volume_ma20`  float(16,2) NOT NULL DEFAULT 0 COMMENT '成交量20日均值' AFTER `volume_ma10`,
+        ADD COLUMN `volume_ma30`  float(16,2) NOT NULL DEFAULT 0 COMMENT '成交量30日均值' AFTER `volume_ma20`,
+        ADD COLUMN `volume_ma60`  float(16,2) NOT NULL DEFAULT 0 COMMENT '成交量60日均值' AFTER `volume_ma30`,
+        ADD COLUMN `volume_ma90`  float(16,2) NOT NULL DEFAULT 0 COMMENT '成交量90日均值' AFTER `volume_ma60`,
+        ADD COLUMN `volume_ma180`  float(16,2) NOT NULL DEFAULT 0 COMMENT '成交量180日均值' AFTER `volume_ma90`;
+    """
+    repair_all_tables("daily_info_" , modify)
+
+

@@ -44,7 +44,7 @@ class update_today_trade_info(job_base):
         count = int(count_info[0][0])
         if count == self._pre_share_count:
             return self._share_ids_str_list
-        #share_ids = conn.select("share_base_info", ["share_id", "market_type"],{"share_id":"601375"})
+        #share_ids = conn.select("share_base_info", ["share_id", "market_type"],{"share_id":["601375", "="]})
         share_ids = conn.select("share_base_info", ["share_id", "market_type"],{})
         ids = []
         for item in share_ids:

@@ -41,7 +41,7 @@ class bak_today_trade(job_base):
                 "trade_num","trade_price","buy_1_num","buy_1_price","buy_2_num","buy_2_price","buy_3_num","buy_3_price","buy_4_num","buy_4_price",
                 "buy_5_num","buy_5_price","sale_1_num","sale_1_price","sale_2_num","sale_2_price","sale_3_num","sale_3_price","sale_4_num","sale_4_price",
                 "sale_5_num","sale_5_price","time_date_str","time_str"]
-        daily_data = conn.select(table_name, fields_array, {"share_id":share_id})
+        daily_data = conn.select(table_name, fields_array, {"share_id":[share_id, "="]})
         self._bak_single_market_maker_info(share_id, daily_data)
 
     def _bak_single_market_maker_info(self, share_id, daily_data):

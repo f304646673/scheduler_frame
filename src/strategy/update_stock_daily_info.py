@@ -73,7 +73,7 @@ class update_stock_daily_info(job_base):
         ids = []
         for share_id in share_ids:
             ids.append(share_id[0])
-        share_ids = fetch_data.get_data(fetch_data.select_db("stock_db", "share_base_info", ["share_id", "market_type"],{"share_id":ids}))
+        share_ids = fetch_data.get_data(fetch_data.select_db("stock_db", "share_base_info", ["share_id", "market_type"],{"share_id":[ids, "in"]}))
         return share_ids
         
     def _get_all_share_ids(self):
