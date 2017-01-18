@@ -16,6 +16,8 @@ CREATE TABLE `%s` (
   `close_ma30` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '收盘价30日均值',
   `close_ma60` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '收盘价60日均值',
   `close_ma90` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '收盘价90日均值',
+  `close_ma120` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '收盘价120日均值',
+  `close_ma150` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '收盘价150日均值',
   `close_ma180` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '收盘价180日均值',
   `volume_ma5` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '成交量5日均值',
   `volume_ma10` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '成交量10日均值',
@@ -23,6 +25,8 @@ CREATE TABLE `%s` (
   `volume_ma30` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '成交量30日均值',
   `volume_ma60` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '成交量60日均值',
   `volume_ma90` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '成交量90日均值',
+  `volume_ma120` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '成交量120日均值',
+  `volume_ma150` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '成交量150日均值',
   `volume_ma180` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '成交量180日均值',
   PRIMARY KEY (`time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci COMMENT='股票日线数据';
