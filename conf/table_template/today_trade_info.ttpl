@@ -3,7 +3,7 @@ CREATE TABLE `%s` (
   `share_id` char(6) CHARACTER SET latin1 NOT NULL DEFAULT '000000',
   `share_name` varchar(32) COLLATE utf8_unicode_ci NOT NULL DEFAULT '' COMMENT '股票名称',
   `today_open` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '今日开盘价',
-  `yesteday_close` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '昨天收盘价',
+  `yesterday_close` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '昨天收盘价',
   `cur` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '当前价格',
   `today_high` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '今日最高',
   `today_low` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '今日最低',

@@ -89,13 +89,19 @@ if __name__ == "__main__":
 #        ADD COLUMN `volume_ma180`  float(16,2) NOT NULL DEFAULT 0 COMMENT '成交量180日均值' AFTER `volume_ma90`;
 #    """
 
+#    modify = """
+#        ALTER TABLE `%s`
+#        ADD COLUMN `close_ma120`  float(16,2) NOT NULL DEFAULT 0 COMMENT '收盘价120日均值' AFTER `close_ma90`,
+#        ADD COLUMN `close_ma150`  float(16,2) NOT NULL DEFAULT 0 COMMENT '收盘价150日均值' AFTER `close_ma120`,
+#        ADD COLUMN `volume_ma120`  float(16,2) NOT NULL DEFAULT 0 COMMENT '成交量120日均值' AFTER `volume_ma90`,
+#        ADD COLUMN `volume_ma150`  float(16,2) NOT NULL DEFAULT 0 COMMENT '成交量150日均值' AFTER `volume_ma120`;
+#    """
+
     modify = """
         ALTER TABLE `%s`
-        ADD COLUMN `close_ma120`  float(16,2) NOT NULL DEFAULT 0 COMMENT '收盘价120日均值' AFTER `close_ma90`,
-        ADD COLUMN `close_ma150`  float(16,2) NOT NULL DEFAULT 0 COMMENT '收盘价150日均值' AFTER `close_ma120`,
-        ADD COLUMN `volume_ma120`  float(16,2) NOT NULL DEFAULT 0 COMMENT '成交量120日均值' AFTER `volume_ma90`,
-        ADD COLUMN `volume_ma150`  float(16,2) NOT NULL DEFAULT 0 COMMENT '成交量150日均值' AFTER `volume_ma120`;
+        CHANGE COLUMN `yesteday_close` `yesterday_close`  float(16,2) NOT NULL DEFAULT 0.00 COMMENT '×ÌÊÅ' AFTER `today_open`;
     """
-    repair_all_tables("daily_info_" , modify)
+    #repair_all_tables("daily_info_" , modify)
+    repair_all_tables("trade_info_" , modify)
 
 

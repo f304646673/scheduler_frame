@@ -107,7 +107,7 @@ class update_stock_daily_info(job_base):
         return useful_data
 
     def _save_data(self, share_id, table_name, data):
-        into_db_columns = ["time","time_str","today_close","today_high","today_low","today_open","yesteday_close","pchg","turnover_rate","volume","turnover"]
+        into_db_columns = ["time","time_str","today_close","today_high","today_low","today_open","yesterday_close","pchg","turnover_rate","volume","turnover"]
         columns_count = len(into_db_columns)
 
         for item in data:

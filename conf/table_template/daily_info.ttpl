@@ -5,7 +5,7 @@ CREATE TABLE `%s` (
   `today_high` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '今日最高',
   `today_low` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '今日最低',
   `today_open` float(16,2) NOT NULL COMMENT '今日开盘价',
-  `yesteday_close` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '昨天收盘',
+  `yesterday_close` float(16,2) NOT NULL DEFAULT '0.00' COMMENT '昨天收盘',
   `pchg` float(16,4) NOT NULL DEFAULT '0.0000' COMMENT '涨跌幅',
   `turnover_rate` float(16,4) NOT NULL DEFAULT '0.0000' COMMENT '换手率',
   `volume` bigint(32) NOT NULL DEFAULT '0' COMMENT '成交量',

@@ -87,7 +87,7 @@ class update_today_trade_info(job_base):
 
         data_array = []
 
-        into_db_columns = ["share_id","share_name","today_open","yesteday_close","cur","today_high","today_low","compete_buy_price","compete_sale_price",
+        into_db_columns = ["share_id","share_name","today_open","yesterday_close","cur","today_high","today_low","compete_buy_price","compete_sale_price",
                 "trade_num","trade_price","buy_1_num","buy_1_price","buy_2_num","buy_2_price","buy_3_num","buy_3_price","buy_4_num","buy_4_price",
                 "buy_5_num","buy_5_price","sale_1_num","sale_1_price","sale_2_num","sale_2_price","sale_3_num","sale_3_price","sale_4_num","sale_4_price",
                 "sale_5_num","sale_5_price","time_date_str","time_str","empty"]
