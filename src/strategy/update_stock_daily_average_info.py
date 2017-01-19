@@ -94,7 +94,7 @@ class update_stock_daily_average_info(job_base):
         return ret_data
  
     def _update_average(self, share_id):
-        table_name = "daily_info_%s" % (share_id)
+        table_name = "daily_info_ex_dividend_%s" % (share_id)
         infos = self._calc_average_data(share_id, table_name)
         for item in infos:
             self._save_data(share_id, table_name, item)
