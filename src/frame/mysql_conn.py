@@ -251,26 +251,29 @@ class mysql_conn():
                 update_data[column_name] = column_data
         
         update_str_list = []
-        for (column_name, column_data) in update_data.items():
-            column_type = self._get_column_type(table_name, column_name)
-            new_data = self._conv_data(column_data, column_type)
-            update_str = column_name + "=" + new_data
-            update_str_list.append(update_str)
-        update_info_str = "," . join(update_str_list)
-        
-        cond_str_list = []
-        for (column_name, column_data) in key_data.items():
-            column_type = self._get_column_type(table_name, column_name)
-            new_data = self._conv_data(column_data, column_type)
-            cond_str = column_name + "=" + new_data
-            cond_str_list.append(cond_str)
-        cond_info_str = " AND " . join(cond_str_list)
+        try:
+            for (column_name, column_data) in update_data.items():
+                column_type = self._get_column_type(table_name, column_name)
+                new_data = self._conv_data(column_data, column_type)
+                update_str = column_name + "=" + new_data
+                update_str_list.append(update_str)
+            update_info_str = "," . join(update_str_list)
 
-        sql = "UPDATE %s SET %s" % (table_name, update_info_str)
-        if 0 != len(cond_info_str):
-            sql = sql + " where " + cond_info_str
+            cond_str_list = []
+            for (column_name, column_data) in key_data.items():
+                column_type = self._get_column_type(table_name, column_name)
+                new_data = self._conv_data(column_data, column_type)
+                cond_str = column_name + "=" + new_data
+                cond_str_list.append(cond_str)
+            cond_info_str = " AND " . join(cond_str_list)
+
+            sql = "UPDATE %s SET %s" % (table_name, update_info_str)
+            if 0 != len(cond_info_str):
+                sql = sql + " where " + cond_info_str
         
-        self.execute(sql, commit = True)
+            self.execute(sql, commit = True)
+        except Exception as e:
+            LOG_WARNING("update %s %s %s error: %s" % (table_name, data, keys_name, str(e)))
 
     def insert_onduplicate(self, table_name, data, keys_name):
         columns_name = data.keys()
