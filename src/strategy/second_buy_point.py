@@ -77,7 +77,7 @@ class second_buy_point(job_base):
             index = index_info[0]
             info = index_info[1]
             a = data[index]["time"]
-            if timeStamp > a:
+            if timeStamp < a:
                 filter_data.append(index_info)
         return filter_data
 
